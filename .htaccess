@@ -1,0 +1,5 @@
+Options All -Indexes
+
+# Error 
+ErrorDocument 403 /munaportada/error.html
+ErrorDocument 404 /munaportada/error.html

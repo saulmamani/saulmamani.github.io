@@ -1,0 +1,41 @@
+	
+	.fotocontenedor {
+	text-align : center;
+	border:1px solid #ccc;
+	background-color : #fff;
+	padding : 5px;
+	box-shadow : 0px 0px 1px #484848;
+	margin : 0 auto;
+	}
+	
+	
+[class*="col-"] {
+	background:#FFF;	
+	border:none;
+	border-bottom:1px solid #CCC;
+}
+
+hr{
+	margin-bottom:10px;	
+	margin-top:10px;	
+}
+
+.miCurso td{
+	
+}
+
+.bordeimg2 {
+	padding:7px !important; 
+	border:1px solid #999;
+	background:#FFF;
+
+	-webkit-box-shadow: 0 3px 10px -6px #333;
+    -moz-box-shadow: 0 3px 10px -6px #333;
+    box-shadow: 0 3px 10px -6px #333;
+}
+
+.bordeimg2:hover{
+ 	 -webkit-box-shadow: 0 3px 20px -6px #ccc;
+     -moz-box-shadow: 0 10px 6px -6px #ccc;
+     box-shadow: 0 10px 6px -6px #ccc;
+}
