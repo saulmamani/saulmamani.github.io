@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Guia Telefonica COTEOR</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+    
+    <div id="app" class="container">
+       
+        <form class="form"  @submit.prevent="listar">
+            <div class="input-group mb-3">
+                <input type="text" required class="form-control" id="txtBuscar" v-model="txtBuscar" placeholder="Escriba un télefono o un nombre" pattern=".{3,10}" required title="Escriba 3 o mas números o letras por favor">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit" disabled v-if='loading'>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Buscando...
+                    </button>
+
+                    <button class="btn btn-primary" type="submit" id="button-addon2" v-else>Buscar</button>
+
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            
+            <p class="text-center text-muted" v-if="!loading">{{ lista.length }} contactos encontrados</p>
+
+            <table class="table table-striped table-bordered" v-if="lista.length">
+                <thead>
+                    <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Teléfono</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Dirección</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(row, index) in lista" :key="index">
+                        <th scope="row">{{ index+1 }}</th>
+                        <td>{{ row.phone }}</td>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.address }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    new Vue({
+        el:"#app",
+        data:{
+            txtBuscar: '',
+            loading: false,
+            lista: []
+        },
+        methods: {
+            listar(){
+                let url = 'http://localhost:8000/api/guias?txtBuscar=' + this.txtBuscar;
+                this.lista = [];
+
+                //loading
+                this.loading = true;
+
+                axios.get(url).then(response => {
+                    this.lista = response.data;
+                    this.loading = false;
+                }).catch(e => {
+                    console.log(e.response.data);
+                    this.loading = false;
+                });
+            }
+        },
+    })
+</script>
+</html>
