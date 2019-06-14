@@ -13,7 +13,7 @@
        
         <form class="form"  @submit.prevent="listar">
             <div class="input-group mb-3">
-                <input type="text" required class="form-control" id="txtBuscar" v-model="txtBuscar" placeholder="Escriba un télefono o un nombre" pattern=".{3,10}" required title="Escriba 3 o mas números o letras por favor">
+                <input type="text" required class="form-control" id="txtBuscar" v-model="txtBuscar" placeholder="Escriba un télefono o un nombre" maxlength="100" pattern=".{3,}" required title="Escriba 3 o mas números o letras por favor">
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="submit" disabled v-if='loading'>
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -65,7 +65,7 @@
         },
         methods: {
             listar(){
-                let url = 'http://localhost:8000/api/guias?txtBuscar=' + this.txtBuscar;
+                let url = 'https://coteorbackend.herokuapp.com/api/guias?txtBuscar=' + this.txtBuscar;
                 this.lista = [];
 
                 //loading
