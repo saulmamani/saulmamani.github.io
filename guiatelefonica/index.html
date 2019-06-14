@@ -57,7 +57,7 @@
                 <tbody>
                     <tr v-for="(row, index) in lista" :key="index">
                         <th scope="row">{{ index+1 }}</th>
-                        <td>{{ row.phone }}</td>
+                        <td><a :href="'tel:01011'+row.phone">{{ row.phone }}</a></td>
                         <td>{{ row.name }}</td>
                         <td>{{ row.address }}</td>
                     </tr>
