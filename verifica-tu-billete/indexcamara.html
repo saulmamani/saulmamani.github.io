@@ -396,7 +396,7 @@
   <!-- Footer -->
   <footer>
     <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
-    <span class="year" id="footerYear"></span> v1
+    <span class="year" id="footerYear"></span> v2
   </footer>
 
   <!-- Alert overlay -->
@@ -611,9 +611,9 @@
     }
 
     function extractSerialNumber(text) {
-      // ÚNICO formato aceptado: 7-9 dígitos + espacio + UNA letra
-      // Ejemplo: "87500000 B"
-      const pattern = /(\d{7,9})\s+([A-Z])/;
+      // ÚNICO formato aceptado: 7-9 dígitos + 1 o varios espacios + UNA letra
+      // Ejemplo: "87500000 B" o "000000000  B" (con múltiples espacios)
+      const pattern = /(\d{7,9}) +([A-Z])/;
       const match = text.match(pattern);
       
       if (match) {

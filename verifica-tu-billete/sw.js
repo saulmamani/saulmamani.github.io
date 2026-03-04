@@ -5,7 +5,7 @@
 // forzar la limpieza del caché anterior.
 // ─────────────────────────────────────────────
 
-const CACHE_VERSION = 'v0.62'; // ← incrementa esto en cada deploy
+const CACHE_VERSION = 'v0.63'; // ← incrementa esto en cada deploy
 const CACHE_NAME    = 'verifica-bs-' + CACHE_VERSION;
 
 // Archivos a pre-cachear
