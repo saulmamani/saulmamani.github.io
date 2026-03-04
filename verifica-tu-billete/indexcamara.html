@@ -396,7 +396,7 @@
   <!-- Footer -->
   <footer>
     <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
-    <span class="year" id="footerYear"></span> v2
+    <span class="year" id="footerYear"></span> v3
   </footer>
 
   <!-- Alert overlay -->
@@ -528,6 +528,8 @@
       lastDetectedSerial = null;
     }
 
+    // Reutilizar un worker para mayor velocidad
+    let ocrWorker = null;
     async function startOCR() {
       if (!cameraActive || ocrWorking) return;
       
@@ -540,9 +542,28 @@
         return;
       }
       
+      // inicializar worker si aún no existe
+      if (!ocrWorker) {
+        ocrWorker = Tesseract.createWorker({
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              const progress = Math.round(m.progress * 100);
+              document.getElementById('ocrStatus').textContent = `OCR: ${progress}%`;
+            }
+          }
+        });
+        await ocrWorker.load();
+        await ocrWorker.loadLanguage('eng');
+        await ocrWorker.initialize('eng');
+        await ocrWorker.setParameters({
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+        });
+      }
+      
       const canvas = document.createElement('canvas');
-      canvas.width = videoEl.videoWidth;
-      canvas.height = videoEl.videoHeight;
+      // usar tamaño reducido para acelerar OCR
+      canvas.width = videoEl.videoWidth * 0.5;
+      canvas.height = videoEl.videoHeight * 0.5;
       const ctx = canvas.getContext('2d');
       
       let consecutiveMatches = 0;
@@ -550,45 +571,34 @@
         if (!cameraActive) return;
         
         ocrWorking = true;
-        ctx.drawImage(videoEl, 0, 0);
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
         
         try {
-          const result = await Tesseract.recognize(canvas, 'eng', {
-            logger: m => {
-              if (m.status === 'recognizing') {
-                const progress = Math.round(m.progress * 100);
-                document.getElementById('ocrStatus').textContent = `OCR: ${progress}%`;
-              }
-            }
-          });
-          
-          const text = result.data.text.toUpperCase().trim();
-          console.log('OCR text:', text);
-          const serialMatch = extractSerialNumber(text);
+          const { data: { text } } = await ocrWorker.recognize(canvas);
+          const clean = text.toUpperCase().replace(/[^0-9A-Z ]/g, ' ').trim();
+          console.log('OCR cleaned:', clean);
+          const serialMatch = extractSerialNumber(clean);
           
           if (serialMatch) {
             consecutiveMatches++;
             const { serial, series } = serialMatch;
             
-            // Require 2 consecutive detections to confirm
             if (consecutiveMatches >= 2) {
-              console.log(`Detected: ${serial} ${series}`);
+              console.log(`Detected: ${serial}${series ? ' ' + series : ''}`);
               
-              // Si la serie NO es "B", mostrar alerta de válido inmediatamente
-              if (series !== 'B') {
+              if (series && series !== 'B') {
                 closeCamera();
                 inputEl.value = serial;
                 showAlert('valid', serial, null);
               } else {
-                // Si es serie B, anotar en el input y evaluar automáticamente
                 inputEl.value = serial;
-                document.getElementById('ocrStatus').textContent = `✓ ${serial} ${series} - Verificando...`;
+                document.getElementById('ocrStatus').textContent = `✓ ${serial}${series ? ' ' + series : ''} - Verificando...`;
                 await new Promise(r => setTimeout(r, 800));
                 closeCamera();
                 verificar();
               }
             } else {
-              document.getElementById('ocrStatus').textContent = `Confirmando: ${serial} ${series}...`;
+              document.getElementById('ocrStatus').textContent = `Confirmando: ${serialMatch.serial}${serialMatch.series ? ' ' + serialMatch.series : ''}...`;
             }
           } else {
             consecutiveMatches = 0;
@@ -601,9 +611,8 @@
         
         ocrWorking = false;
         
-        // Siguiente frame
         if (cameraActive) {
-          setTimeout(processFrame, 500);
+          setTimeout(processFrame, 300);
         }
       };
       
@@ -611,14 +620,14 @@
     }
 
     function extractSerialNumber(text) {
-      // ÚNICO formato aceptado: 7-9 dígitos + 1 o varios espacios + UNA letra
-      // Ejemplo: "87500000 B" o "000000000  B" (con múltiples espacios)
-      const pattern = /(\d{7,9}) +([A-Z])/;
+      // ÚNICO formato aceptado: 7-9 dígitos + espacio(s) + letra opcional
+      // Ejemplo: "87500000 B" o "35167025" (sin letra al final)
+      const pattern = /(\d{7,9})(?: +([A-Z]))?/;
       const match = text.match(pattern);
       
       if (match) {
         const serial = match[1];
-        const series = match[2];
+        const series = match[2] || null;
         return { serial: parseInt(serial, 10), series };
       }
       
