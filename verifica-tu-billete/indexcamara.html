@@ -443,7 +443,6 @@
     let deferredPrompt = null;
     let cameraActive = false;
     let ocrWorking = false;
-    let lastDetectedSerial = null;
 
     function detectDenom(serial) {
       for (const denom of [50, 20, 10]) {
@@ -533,11 +532,20 @@
       if (!cameraActive || ocrWorking) return;
       
       const videoEl = document.getElementById('cameraPreview');
+      
+      // Esperar a que el video esté listo
+      if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) {
+        document.getElementById('ocrStatus').textContent = 'Inicializando cámara...';
+        setTimeout(startOCR, 500);
+        return;
+      }
+      
       const canvas = document.createElement('canvas');
       canvas.width = videoEl.videoWidth;
       canvas.height = videoEl.videoHeight;
       const ctx = canvas.getContext('2d');
       
+      let consecutiveMatches = 0;
       const processFrame = async () => {
         if (!cameraActive) return;
         
@@ -555,16 +563,16 @@
           });
           
           const text = result.data.text.toUpperCase().trim();
+          console.log('OCR text:', text);
           const serialMatch = extractSerialNumber(text);
           
           if (serialMatch) {
+            consecutiveMatches++;
             const { serial, series } = serialMatch;
             
-            // Si ya detectamos este número, no procesar de nuevo
-            if (lastDetectedSerial === serial) {
-              document.getElementById('ocrStatus').textContent = `✓ ${serial} ${series}`;
-            } else {
-              lastDetectedSerial = serial;
+            // Require 2 consecutive detections to confirm
+            if (consecutiveMatches >= 2) {
+              console.log(`Detected: ${serial} ${series}`);
               
               // Si la serie NO es "B", mostrar alerta de válido inmediatamente
               if (series !== 'B') {
@@ -575,12 +583,15 @@
                 // Si es serie B, anotar en el input y evaluar automáticamente
                 inputEl.value = serial;
                 document.getElementById('ocrStatus').textContent = `✓ ${serial} ${series} - Verificando...`;
-                await new Promise(r => setTimeout(r, 800)); // pequeña pausa
+                await new Promise(r => setTimeout(r, 800));
                 closeCamera();
                 verificar();
               }
+            } else {
+              document.getElementById('ocrStatus').textContent = `Confirmando: ${serial} ${series}...`;
             }
           } else {
+            consecutiveMatches = 0;
             document.getElementById('ocrStatus').textContent = 'Enfoque el número de serie...';
           }
         } catch (err) {
@@ -600,32 +611,15 @@
     }
 
     function extractSerialNumber(text) {
-      // Buscar patrón: 7-9 dígitos seguidos de espacio y una letra
-      const patterns = [
-        /(\d{7,9})\s+([A-Z])/,  // "12345678 B"
-        /(\d{7,9})([A-Z])/,      // "12345678B"
-        /([A-Z])\s+(\d{7,9})/,   // "B 12345678"
-        /([A-Z])(\d{7,9})/       // "B12345678"
-      ];
+      // ÚNICO formato aceptado: 7-9 dígitos + espacio + UNA letra
+      // Ejemplo: "87500000 B"
+      const pattern = /(\d{7,9})\s+([A-Z])/;
+      const match = text.match(pattern);
       
-      for (const pattern of patterns) {
-        const match = text.match(pattern);
-        if (match) {
-          // Determinar cuál es el número y cuál es la letra
-          let serial, series;
-          if (/\d/.test(match[1])) {
-            serial = match[1];
-            series = match[2];
-          } else {
-            serial = match[2];
-            series = match[1];
-          }
-          
-          // Validar que sea una serie válida (A, B, C, I, etc.)
-          if (/^[A-Z]$/.test(series)) {
-            return { serial: parseInt(serial, 10), series };
-          }
-        }
+      if (match) {
+        const serial = match[1];
+        const series = match[2];
+        return { serial: parseInt(serial, 10), series };
       }
       
       return null;
