@@ -421,9 +421,10 @@
     </div>
 
     <div class="info-chip">
-      Ingrese solo los <strong>dígitos del número de serie</strong>.<br>
-      El corte del billete se detecta automáticamente.<br><br>
-      Si el número no coincide con ningún rango, el billete es <strong>válido</strong> o puede que haya ingresado el número incorrectamente.
+       Ingrese el número completo sin espacios ni letras, o tambien puede, 
+        <strong>utilizar la cámara para escanear</strong> el número de serie automáticamente.
+        <br> <br>
+        <i>Solo números de la Serie B son verificables</i>
     </div>
 
   </main>
@@ -459,7 +460,7 @@
 
   <script>
     const year = new Date().getFullYear();
-    document.getElementById('footerYear').textContent = year + ' - v0.5';
+    document.getElementById('footerYear').textContent = year + ' - v0.6';
 
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
