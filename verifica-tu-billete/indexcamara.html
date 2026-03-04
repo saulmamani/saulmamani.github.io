@@ -143,6 +143,12 @@
     .serial-input::placeholder { color: var(--muted); letter-spacing: 2px; font-size: 14px; font-weight: 400; }
     .serial-input:focus { outline: none; border-color: var(--bs50); box-shadow: 0 0 16px var(--bs50-glow); }
     .serial-input.error { border-color: var(--invalid) !important; box-shadow: 0 0 12px rgba(255,23,68,.3) !important; }
+    .serial-input.bs10 { border-color: var(--bs10); }
+    .serial-input.bs10:focus { border-color: var(--bs10); box-shadow: 0 0 16px var(--bs10-glow); }
+    .serial-input.bs20 { border-color: var(--bs20); }
+    .serial-input.bs20:focus { border-color: var(--bs20); box-shadow: 0 0 16px var(--bs20-glow); }
+    .serial-input.bs50 { border-color: var(--bs50); }
+    .serial-input.bs50:focus { border-color: var(--bs50); box-shadow: 0 0 16px var(--bs50-glow); }
 
     /* ── Camera button — positioned inside the input, right side ── */
     .btn-camera {
@@ -197,19 +203,7 @@
     }
     .info-chip strong { color: var(--text); opacity: .75; }
 
-    /* ── Legend ── */
-    .legend { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
-    .legend-chip {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 50px;
-      border: 1.5px solid var(--border); background: var(--surface);
-      font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700;
-      color: var(--muted); transition: background .3s;
-    }
-    .legend-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .dot-10 { background: var(--bs10); box-shadow: 0 0 6px var(--bs10-glow); }
-    .dot-20 { background: var(--bs20); box-shadow: 0 0 6px var(--bs20-glow); }
-    .dot-50 { background: var(--bs50); box-shadow: 0 0 6px var(--bs50-glow); }
+
 
     /* ── Alert overlay ── */
     .alert-overlay {
@@ -333,14 +327,19 @@
       gap: 10px; margin-bottom: 20px;
     }
     .denom-btn {
-      border: 2px solid var(--border); background: var(--surface);
+      border: 1px solid var(--border); background: var(--surface);
       border-radius: 14px; padding: 16px 12px; text-align: center;
       cursor: pointer; transition: all .2s; font-family: 'Syne', sans-serif;
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       color: var(--muted);
     }
     .denom-btn:hover { border-color: var(--bs50); }
-    .denom-btn.active { border-color: var(--bs50); background: rgba(206,147,216,.15); color: var(--bs50); }
+    .denom-btn.bs10:hover { border-color: var(--bs10); }
+    .denom-btn.bs10.active { border: 2px solid var(--bs10); background: rgba(79,195,247,.15); color: var(--bs10); }
+    .denom-btn.bs20:hover { border-color: var(--bs20); }
+    .denom-btn.bs20.active { border: 2px solid var(--bs20); background: rgba(239,154,154,.15); color: var(--bs20); }
+    .denom-btn.bs50:hover { border-color: var(--bs50); }
+    .denom-btn.bs50.active { border: 2px solid var(--bs50); background: rgba(206,147,216,.15); color: var(--bs50); }
     .denom-icon { font-size: 1.8rem; }
     .denom-label { font-weight: 800; font-size: .85rem; }
     .denom-sub { font-size: .65rem; opacity: .7; }
@@ -371,13 +370,6 @@
 
   <main>
 
-    <!-- Legend -->
-    <div class="legend">
-      <div class="legend-chip"><span class="dot dot-10"></span>Bs. 10</div>
-      <div class="legend-chip"><span class="dot dot-20"></span>Bs. 20</div>
-      <div class="legend-chip"><span class="dot dot-50"></span>Bs. 50</div>
-    </div>
-
     <!-- Denom selector -->
     <div class="denom-selector-card" style="background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px; padding: 24px 20px; margin-bottom: 16px;">
       <div class="step-label">① Seleccione el corte</div>
@@ -385,17 +377,14 @@
         <button class="denom-btn bs10" onclick="selectDenom(10)">
           <span class="denom-icon">💵</span>
           <span class="denom-label">Bs. 10</span>
-          <span class="denom-sub">Azul</span>
         </button>
         <button class="denom-btn bs20" onclick="selectDenom(20)">
           <span class="denom-icon">💵</span>
           <span class="denom-label">Bs. 20</span>
-          <span class="denom-sub">Rojo</span>
         </button>
         <button class="denom-btn bs50" onclick="selectDenom(50)">
           <span class="denom-icon">💵</span>
           <span class="denom-label">Bs. 50</span>
-          <span class="denom-sub">Morado</span>
         </button>
       </div>
     </div>
@@ -441,8 +430,8 @@
 
   <!-- Footer -->
   <footer>
-    <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
-    <span class="year" id="footerYear"></span> v9
+    <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer"> &copy;  Saul Mamani M.</a>
+    <span class="year" id="footerYear"></span>
   </footer>
 
   <!-- Alert overlay -->
@@ -469,7 +458,8 @@
   </div>
 
   <script>
-    document.getElementById('footerYear').textContent = new Date().getFullYear();
+    const year = new Date().getFullYear();
+    document.getElementById('footerYear').textContent = year + ' - v0.5';
 
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
@@ -497,6 +487,9 @@
       // marcar botón como active
       document.querySelectorAll('.denom-btn').forEach(btn => btn.classList.remove('active'));
       event.target.closest('.denom-btn').classList.add('active');
+      // cambiar color del input según denominación
+      inputEl.classList.remove('bs10', 'bs20', 'bs50');
+      inputEl.classList.add('bs' + denom);
       // mostrar la tarjeta de serie
       document.getElementById('serialCard').classList.remove('hidden');
       // limpiar estado anterior
@@ -615,6 +608,7 @@
       document.getElementById('cameraOverlay').classList.remove('show');
       cameraActive = false;
       lastDetectedSerial = null;
+      inputEl.focus();
     }
 
     async function startOCR() {
@@ -776,7 +770,10 @@
 
     function resetAll() {
       inputEl.value = '';
-      inputEl.focus();
+      inputEl.classList.remove('bs10', 'bs20', 'bs50');
+      document.querySelectorAll('.denom-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('serialCard').classList.add('hidden');
+      selectedDenom = null;
       closeAlert();
     }
 
