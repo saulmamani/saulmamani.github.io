@@ -15,6 +15,7 @@
   <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script async src="https://cdn.jsdelivr.net/npm/tesseract.js@v5/dist/tesseract.min.js"></script>
 
   <style>
     :root {
@@ -163,11 +164,9 @@
       transition: stroke .2s;
     }
     .btn-camera:hover svg { stroke: var(--bs50); }
-    /* "coming soon" dot */
+    /* "coming soon" dot - oculto ahora que la cámara está activa */
     .btn-camera .soon-dot {
-      position: absolute; top: 5px; right: 5px;
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--bs50); box-shadow: 0 0 5px var(--bs50-glow);
+      display: none;
     }
 
     /* ── Action buttons ── */
@@ -218,26 +217,6 @@
       display: flex; align-items: center; justify-content: center;
       padding: 24px; background: rgba(10,10,20,.85); backdrop-filter: blur(8px);
       opacity: 0; pointer-events: none; transition: opacity .25s;
-    }
-    /* camera overlay */
-    .camera-overlay {
-      position: fixed; inset: 0; z-index: 1000;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.85);
-      opacity: 0; pointer-events: none; transition: opacity .25s;
-    }
-    .camera-overlay.show { opacity: 1; pointer-events: all; }
-    .camera-container {
-      position: relative; max-width: 90%; max-height: 80%;
-    }
-    #cameraPreview {
-      width: 100%; height: auto; border-radius: 12px; background: #000;
-    }
-    .btn-close-camera {
-      position: absolute; top: 10px; right: 10px;
-      background: rgba(255,255,255,.2); border: none;
-      color: #fff; padding: 8px 12px; border-radius: 8px;
-      cursor: pointer;
     }
     .alert-overlay.show { opacity: 1; pointer-events: all; }
     .alert-card {
@@ -311,6 +290,37 @@
     }
     footer a:hover { opacity: .75; text-decoration: underline; }
     footer .year { font-family: 'DM Sans', sans-serif; font-size: .73rem; color: var(--muted); }
+
+    /* ── Camera overlay ── */
+    .camera-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.95);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .camera-overlay.show { opacity: 1; pointer-events: all; }
+    .camera-container {
+      position: relative; width: 100%; max-width: 95%; max-height: 95%;
+      display: flex; flex-direction: column;
+    }
+    #cameraPreview {
+      width: 100%; height: auto; border-radius: 12px; background: #000;
+      object-fit: contain; max-height: calc(100vh - 100px);
+    }
+    .camera-controls {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 12px; gap: 10px;
+    }
+    .btn-close-camera {
+      background: rgba(255,255,255,.2); border: none;
+      color: #fff; padding: 10px 16px; border-radius: 8px;
+      cursor: pointer; font-weight: 600; transition: background .2s;
+    }
+    .btn-close-camera:hover { background: rgba(255,255,255,.3); }
+    #ocrStatus {
+      background: rgba(0,0,0,.7); border-radius: 8px; padding: 8px 14px;
+      color: #fff; font-size: 0.8rem; text-align: center; flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -361,12 +371,11 @@
           autocorrect="off"
           spellcheck="false"
         />
-        <button class="btn-camera" onclick="openCamera()" title="Abrir cámara" aria-label="Abrir cámara para escanear">
+        <button class="btn-camera" onclick="openCamera()" title="Abrir cámara para escanear" aria-label="Abrir cámara para escanear número de serie">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <circle cx="12" cy="13" r="4"/>
           </svg>
-          <span class="soon-dot"></span>
         </button>
       </div>
 
@@ -406,7 +415,10 @@
   <div class="camera-overlay" id="cameraOverlay" onclick="closeCamera()">
     <div class="camera-container" onclick="event.stopPropagation()">
       <video id="cameraPreview" autoplay playsinline></video>
-      <button class="btn-close-camera" onclick="closeCamera()">Cerrar</button>
+      <div class="camera-controls">
+        <div id="ocrStatus">Detectando...</div>
+        <button class="btn-close-camera" onclick="closeCamera()">Cerrar</button>
+      </div>
     </div>
   </div>
 
@@ -429,6 +441,9 @@
     const DENOM_LABEL = { 50: 'Bs. 50', 20: 'Bs. 20', 10: 'Bs. 10' };
     const DENOM_CLASS = { 50: 'badge-bs50', 20: 'badge-bs20', 10: 'badge-bs10' };
     let deferredPrompt = null;
+    let cameraActive = false;
+    let ocrWorking = false;
+    let lastDetectedSerial = null;
 
     function detectDenom(serial) {
       for (const denom of [50, 20, 10]) {
@@ -486,14 +501,16 @@
     }
 
     // ── Coming soon (camera button) ──
-    // ── Camera preview ──
     async function openCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+        });
         const videoEl = document.getElementById('cameraPreview');
         videoEl.srcObject = stream;
-        videoEl.play();
         document.getElementById('cameraOverlay').classList.add('show');
+        cameraActive = true;
+        startOCR();
       } catch (err) {
         console.error('Camera error', err);
         alert('No se puede acceder a la cámara.');
@@ -508,6 +525,110 @@
       }
       videoEl.srcObject = null;
       document.getElementById('cameraOverlay').classList.remove('show');
+      cameraActive = false;
+      lastDetectedSerial = null;
+    }
+
+    async function startOCR() {
+      if (!cameraActive || ocrWorking) return;
+      
+      const videoEl = document.getElementById('cameraPreview');
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      const processFrame = async () => {
+        if (!cameraActive) return;
+        
+        ocrWorking = true;
+        ctx.drawImage(videoEl, 0, 0);
+        
+        try {
+          const result = await Tesseract.recognize(canvas, 'eng', {
+            logger: m => {
+              if (m.status === 'recognizing') {
+                const progress = Math.round(m.progress * 100);
+                document.getElementById('ocrStatus').textContent = `OCR: ${progress}%`;
+              }
+            }
+          });
+          
+          const text = result.data.text.toUpperCase().trim();
+          const serialMatch = extractSerialNumber(text);
+          
+          if (serialMatch) {
+            const { serial, series } = serialMatch;
+            
+            // Si ya detectamos este número, no procesar de nuevo
+            if (lastDetectedSerial === serial) {
+              document.getElementById('ocrStatus').textContent = `✓ ${serial} ${series}`;
+            } else {
+              lastDetectedSerial = serial;
+              
+              // Si la serie NO es "B", mostrar alerta de válido inmediatamente
+              if (series !== 'B') {
+                closeCamera();
+                inputEl.value = serial;
+                showAlert('valid', serial, null);
+              } else {
+                // Si es serie B, anotar en el input y evaluar automáticamente
+                inputEl.value = serial;
+                document.getElementById('ocrStatus').textContent = `✓ ${serial} ${series} - Verificando...`;
+                await new Promise(r => setTimeout(r, 800)); // pequeña pausa
+                closeCamera();
+                verificar();
+              }
+            }
+          } else {
+            document.getElementById('ocrStatus').textContent = 'Enfoque el número de serie...';
+          }
+        } catch (err) {
+          console.error('OCR error:', err);
+          document.getElementById('ocrStatus').textContent = 'Error en OCR';
+        }
+        
+        ocrWorking = false;
+        
+        // Siguiente frame
+        if (cameraActive) {
+          setTimeout(processFrame, 500);
+        }
+      };
+      
+      processFrame();
+    }
+
+    function extractSerialNumber(text) {
+      // Buscar patrón: 7-9 dígitos seguidos de espacio y una letra
+      const patterns = [
+        /(\d{7,9})\s+([A-Z])/,  // "12345678 B"
+        /(\d{7,9})([A-Z])/,      // "12345678B"
+        /([A-Z])\s+(\d{7,9})/,   // "B 12345678"
+        /([A-Z])(\d{7,9})/       // "B12345678"
+      ];
+      
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match) {
+          // Determinar cuál es el número y cuál es la letra
+          let serial, series;
+          if (/\d/.test(match[1])) {
+            serial = match[1];
+            series = match[2];
+          } else {
+            serial = match[2];
+            series = match[1];
+          }
+          
+          // Validar que sea una serie válida (A, B, C, I, etc.)
+          if (/^[A-Z]$/.test(series)) {
+            return { serial: parseInt(serial, 10), series };
+          }
+        }
+      }
+      
+      return null;
     }
 
     function showComingSoon() {
