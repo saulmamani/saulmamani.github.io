@@ -530,7 +530,7 @@
 
   <script>
     const year = new Date().getFullYear();
-    document.getElementById('footerYear').textContent = year + ' - v0.7.2';
+    document.getElementById('footerYear').textContent = year + ' - v0.7.3';
 
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
@@ -774,7 +774,7 @@
         document.getElementById('alertDenom').style.border     = '1px solid rgba(0,230,118,.3)';
         document.getElementById('alertTitle').textContent = 'Billete Válido';
         document.getElementById('alertTitle').className   = 'alert-title valid';
-        document.getElementById('alertSub').innerHTML     = 'Este número <strong>no está en los rangos observados</strong>: el billete probablemente es válido.<br><br>Si tiene dudas, verifique que el número esté escrito correctamente.';
+        document.getElementById('alertSub').innerHTML     = 'Este número <strong>no está en los rangos observados</strong><br><br>Si tiene dudas, verifique que el número esté escrito correctamente.';
         document.getElementById('alertBtn').className     = 'btn-close-alert valid';
       }
       document.getElementById('alertOverlay').classList.add('show');
