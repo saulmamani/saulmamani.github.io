@@ -1,5 +1,5 @@
 const year = new Date().getFullYear();
-document.getElementById('footerYear').textContent = year + ' - v0.7.5';
+document.getElementById('footerYear').textContent = year + ' - v0.7.6';
 
 const RANGES = {
   50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
@@ -55,7 +55,8 @@ function selectDenom(denom, btn) {
   setTimeout(() => inputEl.focus(), 100);
 }
 
-function detectDenom(serial) {
+function detectDenom(serialNum) {
+  const serial = typeof serialNum === 'string' ? parseInt(serialNum, 10) : serialNum;
   if (selectedDenom) {
     for (const [from, to] of RANGES[selectedDenom]) {
       if (serial >= from && serial <= to) return selectedDenom;
@@ -109,16 +110,16 @@ inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDef
 function verificar() {
   const raw = inputEl.value.replace(/\D/g, '').trim();
   if (!raw) { flashError(); return; }
-  const serial = parseInt(raw, 10);
-  if (isNaN(serial) || serial <= 0) { flashError(); return; }
-  const matchedDenom = detectDenom(serial);
+  const serialNum = parseInt(raw, 10);
+  if (isNaN(serialNum) || serialNum <= 0) { flashError(); return; }
+  const matchedDenom = detectDenom(serialNum);
   // Registrar evento en GA4
   gtag('event', 'verificacion', {
     'event_category': 'billete',
     'event_label': 'verificacion_manual',
     'metodo': 'manual'
   });
-  showAlert(matchedDenom !== null ? 'invalid' : 'valid', serial, matchedDenom);
+  showAlert(matchedDenom !== null ? 'invalid' : 'valid', raw, matchedDenom);
 }
 
 function flashError() {
@@ -189,13 +190,13 @@ async function startOCR() {
       const clean = text.replace(/[^0-9A-Z ]/g, ' ').trim();
       const serialMatch = extractSerialNumber(clean);
       if (serialMatch) {
-        const { serial } = serialMatch;
-        if (lastDetectedSerial !== serial) {
-          lastDetectedSerial = serial; consecutiveMatches = 1;
+        const { serialStr } = serialMatch;
+        if (lastDetectedSerial !== serialStr) {
+          lastDetectedSerial = serialStr; consecutiveMatches = 1;
         } else { consecutiveMatches++; }
         if (consecutiveMatches >= 2) {
-          inputEl.value = serial;
-          document.getElementById('ocrStatus').textContent = `✓ ${serial}${serialMatch.series ? ' ' + serialMatch.series : ''} - Verificando...`;
+          inputEl.value = serialStr;
+          document.getElementById('ocrStatus').textContent = `✓ ${serialStr}${serialMatch.series ? ' ' + serialMatch.series : ''} - Verificando...`;
           // Registrar evento en GA4
           gtag('event', 'verificacion', {
             'event_category': 'billete',
@@ -206,7 +207,7 @@ async function startOCR() {
           closeCamera();
           verificar();
         } else {
-          document.getElementById('ocrStatus').textContent = `Confirmando: ${serial}${serialMatch.series ? ' ' + serialMatch.series : ''}...`;
+          document.getElementById('ocrStatus').textContent = `Confirmando: ${serialStr}${serialMatch.series ? ' ' + serialMatch.series : ''}...`;
         }
       } else {
         consecutiveMatches = 0; lastDetectedSerial = null;
@@ -226,9 +227,9 @@ function extractSerialNumber(text) {
   const pattern = /(\d{7,9})(?: +([A-Z]))?/;
   const match = text.match(pattern);
   if (match) {
-    const serial = match[1];
+    const serialStr = match[1];
     const series = match[2] || null;
-    return { serial: parseInt(serial, 10), series };
+    return { serialStr, series };
   }
   return null;
 }
