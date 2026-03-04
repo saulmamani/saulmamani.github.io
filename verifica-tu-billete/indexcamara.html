@@ -540,8 +540,6 @@
       lastDetectedSerial = null;
     }
 
-    // Reutilizar un worker para mayor velocidad
-    let ocrWorker = null;
     async function startOCR() {
       if (!cameraActive || ocrWorking) return;
       
@@ -555,40 +553,7 @@
         return;
       }
       
-      // inicializar worker si aún no existe
-      if (!ocrWorker) {
-        try {
-          document.getElementById('ocrStatus').textContent = 'Cargando motor OCR…';
-          ocrWorker = Tesseract.createWorker({
-            logger: m => {
-              if (m.status === 'recognizing text') {
-                const progress = Math.round(m.progress * 100);
-                document.getElementById('ocrStatus').textContent = `OCR: ${progress}%`;
-              }
-            }
-          });
-          await ocrWorker.load();
-          document.getElementById('ocrStatus').textContent = 'Cargando idioma…';
-          await ocrWorker.loadLanguage('eng');
-          document.getElementById('ocrStatus').textContent = 'Inicializando OCR…';
-          await ocrWorker.initialize('eng');
-          await ocrWorker.setParameters({
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
-          });
-        } catch (err) {
-          console.error('OCR init failed', err);
-          document.getElementById('ocrStatus').textContent = 'OCR no disponible';
-          // cerrar cámara tras breve aviso y permitir uso manual
-          setTimeout(() => {
-            closeCamera();
-            alert('El motor OCR no pudo inicializarse. Por favor ingrese el número manualmente.');
-          }, 1000);
-          return; // abort OCR attempt
-        }
-      }
-      
       const canvas = document.createElement('canvas');
-      // usar tamaño reducido para acelerar OCR
       canvas.width = videoEl.videoWidth * 0.5;
       canvas.height = videoEl.videoHeight * 0.5;
       const ctx = canvas.getContext('2d');
@@ -601,8 +566,16 @@
         ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
         
         try {
-          const { data: { text } } = await ocrWorker.recognize(canvas);
-          const clean = text.toUpperCase().replace(/[^0-9A-Z ]/g, ' ').trim();
+          const result = await Tesseract.recognize(canvas, 'eng', {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                const progress = Math.round(m.progress * 100);
+                document.getElementById('ocrStatus').textContent = `OCR: ${progress}%`;
+              }
+            }
+          });
+          const text = result.data.text.toUpperCase();
+          const clean = text.replace(/[^0-9A-Z ]/g, ' ').trim();
           console.log('OCR cleaned:', clean);
           const serialMatch = extractSerialNumber(clean);
           
