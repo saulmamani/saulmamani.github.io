@@ -396,7 +396,7 @@
   <!-- Footer -->
   <footer>
     <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
-    <span class="year" id="footerYear"></span> v5
+    <span class="year" id="footerYear"></span> v6
   </footer>
 
   <!-- Alert overlay -->
@@ -577,7 +577,12 @@
           });
         } catch (err) {
           console.error('OCR init failed', err);
-          document.getElementById('ocrStatus').textContent = 'Error inicializando OCR';
+          document.getElementById('ocrStatus').textContent = 'OCR no disponible';
+          // cerrar cámara tras breve aviso y permitir uso manual
+          setTimeout(() => {
+            closeCamera();
+            alert('El motor OCR no pudo inicializarse. Por favor ingrese el número manualmente.');
+          }, 1000);
           return; // abort OCR attempt
         }
       }
