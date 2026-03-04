@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Valida Bs." />
+  <title>Verifica tu Billete</title>
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0f0f8;
+      --muted: rgba(240,240,248,0.45);
+      --header-bg: rgba(26,26,46,0.92);
+      --chip-bg: rgba(255,255,255,0.04);
+      --serial-bg: rgba(255,255,255,0.06);
+      --card-bg: #1a1a2e;
+      --bs10: #4fc3f7; --bs10-dark: #0277bd; --bs10-glow: rgba(79,195,247,0.3);
+      --bs20: #ef9a9a; --bs20-dark: #c62828; --bs20-glow: rgba(239,154,154,0.3);
+      --bs50: #ce93d8; --bs50-dark: #7b1fa2; --bs50-glow: rgba(206,147,216,0.3);
+      --valid: #00e676; --invalid: #ff1744;
+    }
+    body.light {
+      --bg: #f0f4fa; --surface: #ffffff; --border: rgba(0,0,0,0.09);
+      --text: #111122; --muted: rgba(17,17,34,0.45);
+      --header-bg: rgba(255,255,255,0.95);
+      --chip-bg: rgba(0,0,0,0.04); --serial-bg: rgba(0,0,0,0.05); --card-bg: #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100dvh;
+      display: flex; flex-direction: column; align-items: center;
+      padding-bottom: 48px;
+      background-image:
+        radial-gradient(ellipse at 15% 0%, rgba(79,195,247,.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 90%, rgba(206,147,216,.07) 0%, transparent 55%);
+      transition: background-color .3s, color .3s;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      position: sticky; top: 0; z-index: 10;
+      transition: background .3s, border-color .3s;
+    }
+    .header-topbar {
+      display: flex; justify-content: flex-end;
+      padding: 10px 16px 0;
+    }
+    .theme-toggle {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 10px; width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; cursor: pointer;
+      transition: all .2s; color: var(--text);
+    }
+    .theme-toggle:hover { opacity: .8; }
+    .header-center { text-align: center; padding: 8px 20px 18px; }
+    .shield {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 46px; height: 46px; border-radius: 14px;
+      background: linear-gradient(135deg, #4fc3f7, #ce93d8);
+      margin-bottom: 7px; font-size: 21px;
+    }
+    header h1 {
+      font-family: 'Syne', sans-serif; font-size: 1.2rem;
+      font-weight: 800; letter-spacing: -.5px; color: var(--text);
+    }
+    header p { font-size: .74rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── Main ── */
+    main { width: 100%; max-width: 460px; padding: 32px 20px; flex: 1; }
+
+    /* ── Input card ── */
+    .input-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 22px;
+      padding: 28px 24px 24px;
+      transition: background .3s, border-color .3s;
+    }
+
+    .input-label {
+      font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 12px;
+    }
+
+    .serial-wrap {
+      position: relative; display: flex; align-items: center; gap: 10px;
+    }
+
+    .serial-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem; font-weight: 700; letter-spacing: 3px;
+      color: var(--text); text-align: center;
+      transition: border-color .25s, box-shadow .25s, background .3s, color .3s;
+    }
+    .serial-input::placeholder { color: var(--muted); font-size: 1rem; letter-spacing: 2px; }
+    .serial-input:focus { outline: none; border-color: rgba(240,240,248,.25); }
+    .serial-input.glow-bs10 { border-color: var(--bs10); box-shadow: 0 0 18px var(--bs10-glow); }
+    .serial-input.glow-bs20 { border-color: var(--bs20); box-shadow: 0 0 18px var(--bs20-glow); }
+    .serial-input.glow-bs50 { border-color: var(--bs50); box-shadow: 0 0 18px var(--bs50-glow); }
+
+    /* live preview pill */
+    .denom-pill {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-width: 62px; height: 62px; border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      transition: all .3s;
+      flex-shrink: 0;
+    }
+    .denom-pill .pill-amount {
+      font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 800;
+      line-height: 1; color: var(--muted);
+    }
+    .denom-pill .pill-label {
+      font-size: .58rem; font-weight: 500; color: var(--muted); margin-top: 3px;
+    }
+    .denom-pill.bs10 { border-color: var(--bs10); box-shadow: 0 0 14px var(--bs10-glow); background: rgba(79,195,247,.08); }
+    .denom-pill.bs10 .pill-amount { color: var(--bs10); }
+    .denom-pill.bs20 { border-color: var(--bs20); box-shadow: 0 0 14px var(--bs20-glow); background: rgba(239,154,154,.08); }
+    .denom-pill.bs20 .pill-amount { color: var(--bs20); }
+    .denom-pill.bs50 { border-color: var(--bs50); box-shadow: 0 0 14px var(--bs50-glow); background: rgba(206,147,216,.08); }
+    .denom-pill.bs50 .pill-amount { color: var(--bs50); }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 10px; margin-top: 18px;
+    }
+    .btn-verify {
+      border: none; border-radius: 14px; padding: 17px 24px;
+      font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: all .2s;
+      background: rgba(240,240,248,.12); color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+    .btn-verify.bs10 { background: linear-gradient(135deg, var(--bs10-dark), var(--bs10)); color: #fff; border-color: transparent; }
+    .btn-verify.bs20 { background: linear-gradient(135deg, var(--bs20-dark), var(--bs20)); color: #fff; border-color: transparent; }
+    .btn-verify.bs50 { background: linear-gradient(135deg, var(--bs50-dark), var(--bs50)); color: #fff; border-color: transparent; }
+    .btn-verify:active { transform: scale(.97); }
+
+    .btn-reset {
+      border: 1.5px solid var(--border); background: transparent;
+      border-radius: 14px; padding: 17px 18px;
+      color: var(--muted); font-size: 1.2rem; cursor: pointer; transition: all .2s;
+    }
+    .btn-reset:hover { opacity: .75; }
+    .btn-reset:active { transform: scale(.95); }
+
+    /* ── Info chip ── */
+    .info-chip {
+      margin-top: 20px; padding: 14px 18px; border-radius: 13px;
+      background: var(--chip-bg); border: 1px solid var(--border);
+      font-size: .78rem; color: var(--muted); line-height: 1.65;
+      text-align: center; transition: background .3s, border-color .3s;
+    }
+    .info-chip strong { color: var(--text); opacity: .8; }
+
+    /* ── Alert overlay ── */
+    .alert-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      background: rgba(8,8,18,.88); backdrop-filter: blur(10px);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .alert-overlay.show { opacity: 1; pointer-events: all; }
+
+    .alert-card {
+      background: var(--card-bg); border-radius: 26px;
+      padding: 38px 28px 28px; text-align: center;
+      max-width: 330px; width: 100%;
+      border: 1.5px solid var(--border);
+      transform: scale(.82) translateY(16px);
+      transition: transform .32s cubic-bezier(.34,1.56,.64,1), background .3s;
+    }
+    .alert-overlay.show .alert-card { transform: scale(1) translateY(0); }
+
+    .alert-icon {
+      width: 82px; height: 82px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.6rem; margin: 0 auto 18px;
+      position: relative;
+    }
+    .alert-icon.valid   { background: rgba(0,230,118,.12); border: 2px solid var(--valid); color: var(--valid); }
+    .alert-icon.invalid { background: rgba(255,23,68,.12);  border: 2px solid var(--invalid); color: var(--invalid); }
+
+    @keyframes pulse-ring {
+      0%   { transform: scale(.92); opacity: .9; }
+      80%  { transform: scale(1.38); opacity: 0; }
+      100% { transform: scale(1.38); opacity: 0; }
+    }
+    .alert-icon::after {
+      content: ''; position: absolute; inset: -2px; border-radius: 50%;
+      border: 2px solid currentColor;
+      animation: pulse-ring 1.5s ease-out infinite;
+    }
+
+    .alert-title {
+      font-family: 'Syne', sans-serif; font-size: 1.35rem;
+      font-weight: 800; margin-bottom: 10px;
+    }
+    .alert-title.valid   { color: var(--valid); }
+    .alert-title.invalid { color: var(--invalid); }
+
+    .alert-denom-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 20px;
+      font-family: 'Syne', sans-serif; font-size: .8rem; font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .alert-denom-badge.bs10 { background: rgba(79,195,247,.15); color: var(--bs10); border: 1px solid rgba(79,195,247,.3); }
+    .alert-denom-badge.bs20 { background: rgba(239,154,154,.15); color: var(--bs20); border: 1px solid rgba(239,154,154,.3); }
+    .alert-denom-badge.bs50 { background: rgba(206,147,216,.15); color: var(--bs50); border: 1px solid rgba(206,147,216,.3); }
+    .alert-denom-badge.ok   { background: rgba(0,230,118,.12);   color: var(--valid); border: 1px solid rgba(0,230,118,.3); }
+
+    .alert-serial {
+      font-family: 'Syne', sans-serif; font-size: .88rem; font-weight: 700;
+      letter-spacing: 2px; padding: 8px 16px; border-radius: 9px;
+      background: var(--serial-bg); margin-bottom: 16px; color: var(--muted);
+    }
+
+    .alert-sub {
+      font-size: .83rem; color: var(--muted); line-height: 1.58; margin-bottom: 24px;
+    }
+
+    .btn-close-alert {
+      width: 100%; border: none; border-radius: 13px; padding: 15px;
+      font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 700;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .btn-close-alert.valid   { background: var(--valid); color: #0f0f1a; }
+    .btn-close-alert.invalid { background: var(--invalid); color: #fff; }
+    .btn-close-alert:active { opacity: .85; }
+
+    footer {
+      width: 100%; text-align: center; padding: 16px;
+      font-size: .72rem; color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-topbar">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+  </div>
+  <div class="header-center">
+    <div class="shield">🛡️</div>
+    <h1>Verficia tu Billete</h1>
+    <p>Billetes de la Serie B de cortes 10, 20 y 50 Bs</p>
+  </div>
+</header>
+
+<main>
+  <div class="input-card">
+    <label class="input-label" for="serialInput">Número de serie del billete</label>
+    <div class="serial-wrap">
+      <input
+        type="number"
+        id="serialInput"
+        class="serial-input"
+        placeholder="Ej: 96700000"
+        inputmode="numeric"
+        autocomplete="off"
+        oninput="onSerialInput()"
+      />
+      <div class="denom-pill" id="denomPill">
+        <span class="pill-amount" id="pillAmount">—</span>
+        <span class="pill-label">corte</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-verify" id="btnVerify" onclick="verificar()">🔍 Verificar</button>
+      <button class="btn-reset" onclick="resetAll()" title="Limpiar">↺</button>
+    </div>
+  </div>
+
+  <div class="info-chip">
+    Ingrese solo los <strong>dígitos del número de serie</strong>.<br>
+    El corte del billete se detecta automáticamente.
+  </div>
+</main>
+
+  <!-- Footer -->
+  <footer>
+    <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
+    <span class="year" id="footerYear"></span>
+  </footer>
+
+<!-- Alert -->
+<div class="alert-overlay" id="alertOverlay" onclick="closeAlert()">
+  <div class="alert-card" onclick="event.stopPropagation()">
+    <div class="alert-icon" id="alertIcon"></div>
+    <div class="alert-title" id="alertTitle"></div>
+    <div class="alert-denom-badge" id="alertDenomBadge"></div>
+    <div class="alert-serial" id="alertSerial"></div>
+    <p class="alert-sub" id="alertSub"></p>
+    <button class="btn-close-alert" id="alertBtn" onclick="closeAlert()">Entendido</button>
+  </div>
+</div>
+
+<script>
+  // ── Rangos Serie B sin valor legal ──
+  const RANGES = {
+    50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
+         [70400001,70850000],[70850001,71300000],[76310012,85139995],[86400001,86850000],
+         [90900001,91350000],[91800001,92250000]],
+    20: [[87280145,91646549],[96650001,97100000],[99800001,100250000],[100250001,100700000],
+         [109250001,109700000],[110600001,111050000],[111050001,111500000],[111950001,112400000],
+         [112400001,112850000],[112850001,113300000],[114200001,114650000],[114650001,115100000],
+         [115100001,115550000],[118700001,119150000],[119150001,119600000],[120500001,120950000]],
+    10: [[77100001,77550000],[78000001,78450000],[78900001,96350000],[96350001,96800000],
+         [96800001,97250000],[98150001,98600000],[104900001,105350000],[105350001,105800000],
+         [106700001,107150000],[107600001,108050000],[108050001,108500000],[109400001,109850000]]
+  };
+
+  const DENOM_COLOR  = { 10:'bs10', 20:'bs20', 50:'bs50' };
+  const DENOM_NAME   = { 10:'Bs. 10', 20:'Bs. 20', 50:'Bs. 50' };
+  const DENOM_EMOJI  = { 10:'🔵', 20:'🔴', 50:'🟣' };
+
+  function detectDenom(serial) {
+    for (const [denom, ranges] of Object.entries(RANGES)) {
+      for (const [from, to] of ranges) {
+        if (serial >= from && serial <= to) return parseInt(denom);
+      }
+    }
+    return null;
+  }
+
+  function onSerialInput() {
+    const raw = document.getElementById('serialInput').value.trim();
+    const serial = parseInt(raw, 10);
+    const pill     = document.getElementById('denomPill');
+    const pillAmt  = document.getElementById('pillAmount');
+    const input    = document.getElementById('serialInput');
+    const btnV     = document.getElementById('btnVerify');
+
+    if (!raw || isNaN(serial) || serial <= 0) {
+      pill.className = 'denom-pill';
+      pillAmt.textContent = '—';
+      input.className = 'serial-input';
+      btnV.className = 'btn-verify';
+      return;
+    }
+
+    const denom = detectDenom(serial);
+    if (denom) {
+      const cls = DENOM_COLOR[denom];
+      pill.className = 'denom-pill ' + cls;
+      pillAmt.textContent = 'Bs.' + denom;
+      input.className = 'serial-input glow-' + cls;
+      btnV.className = 'btn-verify ' + cls;
+    } else {
+      pill.className = 'denom-pill';
+      pillAmt.textContent = '?';
+      input.className = 'serial-input';
+      btnV.className = 'btn-verify';
+    }
+  }
+
+  function verificar() {
+    const raw = document.getElementById('serialInput').value.trim();
+    if (!raw) { shakeInput(); return; }
+    const serial = parseInt(raw, 10);
+    if (isNaN(serial) || serial <= 0) { shakeInput(); return; }
+    showAlert(detectDenom(serial), serial);
+  }
+
+  function shakeInput() {
+    const input = document.getElementById('serialInput');
+    input.style.borderColor = '#ff1744';
+    input.style.boxShadow = '0 0 14px rgba(255,23,68,.4)';
+    setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 1000);
+  }
+
+  function showAlert(denom, serial) {
+    const icon  = document.getElementById('alertIcon');
+    const title = document.getElementById('alertTitle');
+    const badge = document.getElementById('alertDenomBadge');
+    const ser   = document.getElementById('alertSerial');
+    const sub   = document.getElementById('alertSub');
+    const btn   = document.getElementById('alertBtn');
+
+    ser.textContent = 'Serie: ' + serial;
+
+    if (denom) {
+      // ── Billete OBSERVADO ──
+      icon.textContent = '✗';
+      icon.className = 'alert-icon invalid';
+      title.textContent = 'Billete Observado';
+      title.className = 'alert-title invalid';
+      badge.textContent = DENOM_EMOJI[denom] + ' ' + DENOM_NAME[denom];
+      badge.className = 'alert-denom-badge ' + DENOM_COLOR[denom];
+      sub.innerHTML = '⚠️ <strong>No lo reciba.</strong> Este billete de <strong>' + DENOM_NAME[denom] + '</strong> pertenece a los rangos de la Serie B declarados <em>sin valor legal</em> por el Banco Central de Bolivia.';
+      btn.className = 'btn-close-alert invalid';
+
+    } else {
+      // ── No está en ningún rango observado ──
+      icon.textContent = '✓';
+      icon.className = 'alert-icon valid';
+      title.textContent = 'Billete Válido';
+      title.className = 'alert-title valid';
+      badge.textContent = '✅ No observado';
+      badge.className = 'alert-denom-badge ok';
+      sub.innerHTML = 'Este número de serie <strong>no figura</strong> en los rangos de billetes observados de ningún corte.<br><br>'
+        + '<span style="opacity:.75">Si el billete le genera dudas, podría tratarse de un número mal transcrito. Verifique nuevamente los dígitos o consulte con su entidad bancaria.</span>';
+      btn.className = 'btn-close-alert valid';
+    }
+
+    document.getElementById('alertOverlay').classList.add('show');
+  }
+
+  function closeAlert() {
+    document.getElementById('alertOverlay').classList.remove('show');
+  }
+
+  function resetAll() {
+    document.getElementById('serialInput').value = '';
+    onSerialInput();
+    closeAlert();
+    document.getElementById('serialInput').focus();
+  }
+
+  document.getElementById('serialInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') verificar();
+  });
+
+  // ── Tema ──
+  let isLight = false;
+  function toggleTheme() {
+    isLight = !isLight;
+    document.body.classList.toggle('light', isLight);
+    document.getElementById('themeToggle').textContent = isLight ? '🌙' : '☀️';
+  }
+
+  // ── Service Worker (PWA) ──
+  if ('serviceWorker' in navigator) {
+    const sw = `const C='bsv3';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['.']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+    const blob = new Blob([sw], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  }
+</script>
+</body>
+</html>
