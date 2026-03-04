@@ -530,7 +530,7 @@
 
   <script>
     const year = new Date().getFullYear();
-    document.getElementById('footerYear').textContent = year + ' - v0.8';
+    document.getElementById('footerYear').textContent = year + ' - v0.7.2';
 
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
@@ -676,7 +676,7 @@
       document.getElementById('cameraOverlay').classList.remove('show');
       cameraActive = false;
       lastDetectedSerial = null;
-      inputEl.focus();
+      inputEl.blur(); // Ocultar teclado numérico
     }
 
     async function startOCR() {
@@ -749,6 +749,7 @@
 
     // ── Alert ──
     function showAlert(type, serial, denom) {
+      inputEl.blur(); // Ocultar teclado numérico
       const serEl = document.getElementById('alertSerial');
       serEl.style.display = '';
       serEl.textContent = 'Serie: ' + serial;
@@ -785,6 +786,7 @@
     }
 
     function closeAlert() {
+      inputEl.blur(); // Asegurar que el teclado se oculta
       document.getElementById('alertOverlay').classList.remove('show');
       _resetBadgeStyles();
     }
