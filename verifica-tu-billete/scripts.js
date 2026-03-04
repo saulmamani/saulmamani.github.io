@@ -1,5 +1,5 @@
 const year = new Date().getFullYear();
-document.getElementById('footerYear').textContent = year + ' - v0.7.4';
+document.getElementById('footerYear').textContent = year + ' - v0.7.5';
 
 const RANGES = {
   50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
