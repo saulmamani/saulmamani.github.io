@@ -396,7 +396,7 @@
   <!-- Footer -->
   <footer>
     <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
-    <span class="year" id="footerYear"></span> v3
+    <span class="year" id="footerYear"></span> v4
   </footer>
 
   <!-- Alert overlay -->
@@ -509,7 +509,13 @@
         videoEl.srcObject = stream;
         document.getElementById('cameraOverlay').classList.add('show');
         cameraActive = true;
-        startOCR();
+        // asegurarse de que el video comience y tenga metadatos
+        videoEl.onloadedmetadata = async () => {
+          try {
+            await videoEl.play();
+          } catch (_) {}
+          startOCR();
+        };
       } catch (err) {
         console.error('Camera error', err);
         alert('No se puede acceder a la cámara.');
@@ -535,9 +541,10 @@
       
       const videoEl = document.getElementById('cameraPreview');
       
-      // Esperar a que el video esté listo
+      // si aún no hay dimensiones, esperamos hasta que cargue metadata
       if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) {
         document.getElementById('ocrStatus').textContent = 'Inicializando cámara...';
+        // volver a intentar más tarde en caso de que onloadedmetadata no se dispare
         setTimeout(startOCR, 500);
         return;
       }
