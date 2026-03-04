@@ -396,7 +396,7 @@
   <!-- Footer -->
   <footer>
     <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
-    <span class="year" id="footerYear"></span> v4
+    <span class="year" id="footerYear"></span> v5
   </footer>
 
   <!-- Alert overlay -->
@@ -509,13 +509,19 @@
         videoEl.srcObject = stream;
         document.getElementById('cameraOverlay').classList.add('show');
         cameraActive = true;
-        // asegurarse de que el video comience y tenga metadatos
-        videoEl.onloadedmetadata = async () => {
+        
+        // cargar y reproducir antes de iniciar OCR
+        const startWhenReady = async () => {
           try {
             await videoEl.play();
           } catch (_) {}
           startOCR();
         };
+        videoEl.onloadedmetadata = startWhenReady;
+        // si ya está listo (algunos navegadores disparan metadata antes de asignar), iniciar de todos modos
+        if (videoEl.readyState >= 1) {
+          startWhenReady();
+        }
       } catch (err) {
         console.error('Camera error', err);
         alert('No se puede acceder a la cámara.');
@@ -551,20 +557,29 @@
       
       // inicializar worker si aún no existe
       if (!ocrWorker) {
-        ocrWorker = Tesseract.createWorker({
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              const progress = Math.round(m.progress * 100);
-              document.getElementById('ocrStatus').textContent = `OCR: ${progress}%`;
+        try {
+          document.getElementById('ocrStatus').textContent = 'Cargando motor OCR…';
+          ocrWorker = Tesseract.createWorker({
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                const progress = Math.round(m.progress * 100);
+                document.getElementById('ocrStatus').textContent = `OCR: ${progress}%`;
+              }
             }
-          }
-        });
-        await ocrWorker.load();
-        await ocrWorker.loadLanguage('eng');
-        await ocrWorker.initialize('eng');
-        await ocrWorker.setParameters({
-          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
-        });
+          });
+          await ocrWorker.load();
+          document.getElementById('ocrStatus').textContent = 'Cargando idioma…';
+          await ocrWorker.loadLanguage('eng');
+          document.getElementById('ocrStatus').textContent = 'Inicializando OCR…';
+          await ocrWorker.initialize('eng');
+          await ocrWorker.setParameters({
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+          });
+        } catch (err) {
+          console.error('OCR init failed', err);
+          document.getElementById('ocrStatus').textContent = 'Error inicializando OCR';
+          return; // abort OCR attempt
+        }
       }
       
       const canvas = document.createElement('canvas');
