@@ -17,6 +17,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <script async src="https://cdn.jsdelivr.net/npm/tesseract.js@v5/dist/tesseract.min.js"></script>
 
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TK1EFCZP8T"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-TK1EFCZP8T', {
+      'anonymize_ip': true,
+      'allow_google_signals': false
+    });
+  </script>
+
   <style>
     :root {
       --bg: #0f0f1a;
@@ -607,6 +619,10 @@
     });
     window.addEventListener('appinstalled', () => {
       document.getElementById('installBanner').classList.remove('visible');
+      gtag('event', 'app_installed', {
+        'event_category': 'engagement',
+        'event_label': 'pwa_installation'
+      });
       deferredPrompt = null;
     });
     async function installApp() {
@@ -638,6 +654,12 @@
       const serial = parseInt(raw, 10);
       if (isNaN(serial) || serial <= 0) { flashError(); return; }
       const matchedDenom = detectDenom(serial);
+      // Registrar evento en GA4
+      gtag('event', 'verificacion', {
+        'event_category': 'billete',
+        'event_label': 'verificacion_manual',
+        'metodo': 'manual'
+      });
       showAlert(matchedDenom !== null ? 'invalid' : 'valid', serial, matchedDenom);
     }
 
@@ -716,6 +738,12 @@
             if (consecutiveMatches >= 2) {
               inputEl.value = serial;
               document.getElementById('ocrStatus').textContent = `✓ ${serial}${serialMatch.series ? ' ' + serialMatch.series : ''} - Verificando...`;
+              // Registrar evento en GA4
+              gtag('event', 'verificacion', {
+                'event_category': 'billete',
+                'event_label': 'verificacion_camara',
+                'metodo': 'camara_ocr'
+              });
               await new Promise(r => setTimeout(r, 800));
               closeCamera();
               verificar();
