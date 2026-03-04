@@ -443,6 +443,7 @@
     let deferredPrompt = null;
     let cameraActive = false;
     let ocrWorking = false;
+    let lastDetectedSerial = null;
 
     function detectDenom(serial) {
       for (const denom of [50, 20, 10]) {
@@ -580,22 +581,28 @@
           const serialMatch = extractSerialNumber(clean);
           
           if (serialMatch) {
-            consecutiveMatches++;
-            const { serial, series } = serialMatch;
+            const { serial } = serialMatch;
+            if (lastDetectedSerial !== serial) {
+              lastDetectedSerial = serial;
+              consecutiveMatches = 1;
+            } else {
+              consecutiveMatches++;
+            }
             
             if (consecutiveMatches >= 2) {
-              console.log(`Detected: ${serial}${series ? ' ' + series : ''}`);
-              // anotar siempre y verificar el número; la letra es meramente informativa
+              console.log(`Confirmed serial: ${serial}`);
+              // siempre verificar el número, letra opcional
               inputEl.value = serial;
-              document.getElementById('ocrStatus').textContent = `✓ ${serial}${series ? ' ' + series : ''} - Verificando...`;
+              document.getElementById('ocrStatus').textContent = `✓ ${serial}${serialMatch.series ? ' ' + serialMatch.series : ''} - Verificando...`;
               await new Promise(r => setTimeout(r, 800));
               closeCamera();
               verificar();
             } else {
-              document.getElementById('ocrStatus').textContent = `Confirmando: ${serialMatch.serial}${serialMatch.series ? ' ' + serialMatch.series : ''}...`;
+              document.getElementById('ocrStatus').textContent = `Confirmando: ${serial}${serialMatch.series ? ' ' + serialMatch.series : ''}...`;
             }
           } else {
             consecutiveMatches = 0;
+            lastDetectedSerial = null;
             document.getElementById('ocrStatus').textContent = 'Enfoque el número de serie...';
           }
         } catch (err) {
