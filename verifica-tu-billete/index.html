@@ -1,26 +1,690 @@
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Verifica tu Billete" />
+  <title>Verifica tu Billete — Bolivia</title>
 
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const resultDiv = document.getElementById('result');
+  <link rel="manifest" href="#" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 
-  if (!video) {
-    alert("No se encontró el elemento video");
-    return;
-  }
-
-  navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: "environment"
+  <style>
+    /* ── Dark theme (default) ── */
+    :root, [data-theme="dark"] {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0f0f8;
+      --muted: rgba(240,240,248,0.45);
+      --header-bg: rgba(26,26,46,0.88);
+      --footer-bg: rgba(26,26,46,0.8);
+      --info-bg: rgba(255,255,255,0.04);
+      --serial-display-bg: rgba(255,255,255,0.06);
+      --alert-bg: rgba(10,10,20,0.88);
+      --alert-card: #1a1a2e;
+      --toggle-icon: "☀️";
+      --toggle-label: "Claro";
+      --bg-grad1: rgba(79,195,247,0.06);
+      --bg-grad2: rgba(206,147,216,0.06);
     }
-  })
-  .then(stream => {
-    video.srcObject = stream;
-  })
-  .catch(err => {
-    alert("Error cámara: " + err);
-  });
 
-});
-</script>
+    /* ── Light theme ── */
+    [data-theme="light"] {
+      --bg: #f0f4fb;
+      --surface: #ffffff;
+      --border: rgba(0,0,0,0.10);
+      --text: #1a1a2e;
+      --muted: rgba(26,26,46,0.5);
+      --header-bg: rgba(255,255,255,0.92);
+      --footer-bg: rgba(255,255,255,0.85);
+      --info-bg: rgba(0,0,0,0.04);
+      --serial-display-bg: rgba(0,0,0,0.05);
+      --alert-bg: rgba(180,190,210,0.75);
+      --alert-card: #ffffff;
+      --bg-grad1: rgba(79,195,247,0.10);
+      --bg-grad2: rgba(206,147,216,0.10);
+    }
+
+    /* ── Accent colors ── */
+    :root {
+      --bs10: #4fc3f7;
+      --bs10-dark: #0277bd;
+      --bs10-glow: rgba(79,195,247,0.25);
+      --bs20: #ef9a9a;
+      --bs20-dark: #c62828;
+      --bs20-glow: rgba(239,154,154,0.25);
+      --bs50: #ce93d8;
+      --bs50-dark: #7b1fa2;
+      --bs50-glow: rgba(206,147,216,0.25);
+      --valid: #00c853;
+      --invalid: #ff1744;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-image:
+        radial-gradient(ellipse at 20% 10%, var(--bg-grad1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, var(--bg-grad2) 0%, transparent 50%);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      padding: 22px 20px 18px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: var(--header-bg);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      transition: background 0.3s;
+      position: relative;
+    }
+
+    .shield {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px; height: 46px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #4fc3f7, #ce93d8);
+      margin-bottom: 8px;
+      font-size: 21px;
+    }
+
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    header p {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Theme toggle button ── */
+    .theme-toggle {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--info-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 7px 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      transition: all 0.2s;
+      white-space: nowrap;
+      letter-spacing: 0.5px;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--bs50);
+    }
+    .theme-toggle .icon { font-size: 0.95rem; }
+
+    /* ── Main ── */
+    main {
+      width: 100%;
+      max-width: 480px;
+      padding: 24px 20px 16px;
+      flex: 1;
+    }
+
+    /* ── Step label ── */
+    .step-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Denomination selector ── */
+    .denom-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .denom-btn {
+      border-radius: 16px;
+      padding: 18px 8px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .denom-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .denom-btn.bs10::before { background: radial-gradient(circle at center, var(--bs10-glow), transparent 70%); }
+    .denom-btn.bs20::before { background: radial-gradient(circle at center, var(--bs20-glow), transparent 70%); }
+    .denom-btn.bs50::before { background: radial-gradient(circle at center, var(--bs50-glow), transparent 70%); }
+
+    .denom-btn:hover::before,
+    .denom-btn.active::before { opacity: 1; }
+
+    .denom-btn.active.bs10 { border-color: var(--bs10); box-shadow: 0 0 20px var(--bs10-glow); }
+    .denom-btn.active.bs20 { border-color: var(--bs20); box-shadow: 0 0 20px var(--bs20-glow); }
+    .denom-btn.active.bs50 { border-color: var(--bs50); box-shadow: 0 0 20px var(--bs50-glow); }
+
+    .denom-icon { font-size: 2rem; line-height: 1; }
+
+    .denom-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .bs10 .denom-label { color: var(--bs10); }
+    .bs20 .denom-label { color: var(--bs20); }
+    .bs50 .denom-label { color: var(--bs50); }
+
+    /* ── Serial input section ── */
+    .serial-section { animation: fadeUp 0.3s ease; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .input-wrap { position: relative; margin-bottom: 16px; }
+
+    .input-wrap label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .serial-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s;
+      text-align: center;
+    }
+
+    .serial-input::placeholder { color: var(--muted); letter-spacing: 2px; font-size: 1rem; }
+    .serial-input:focus { outline: none; }
+    .serial-input.focus-bs10 { border-color: var(--bs10); box-shadow: 0 0 16px var(--bs10-glow); }
+    .serial-input.focus-bs20 { border-color: var(--bs20); box-shadow: 0 0 16px var(--bs20-glow); }
+    .serial-input.focus-bs50 { border-color: var(--bs50); box-shadow: 0 0 16px var(--bs50-glow); }
+
+    /* ── Action buttons ── */
+    .btn-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+
+    .btn-check-main {
+      border: none;
+      border-radius: 14px;
+      padding: 16px 24px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #0f0f1a;
+    }
+
+    .btn-check-main.bs10 { background: var(--bs10); }
+    .btn-check-main.bs20 { background: var(--bs20); }
+    .btn-check-main.bs50 { background: var(--bs50); }
+    .btn-check-main:active { transform: scale(0.97); }
+
+    .btn-reset {
+      border: 1.5px solid var(--border);
+      background: transparent;
+      border-radius: 14px;
+      padding: 16px 18px;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-reset:hover { border-color: var(--invalid); color: var(--invalid); }
+    .btn-reset:active { transform: scale(0.95); }
+
+    /* ── Info chip ── */
+    .info-chip {
+      margin-top: 20px;
+      padding: 13px 16px;
+      border-radius: 12px;
+      background: var(--info-bg);
+      border: 1px solid var(--border);
+      font-size: 0.77rem;
+      color: var(--muted);
+      line-height: 1.6;
+      text-align: center;
+      transition: background 0.3s;
+    }
+    .info-chip strong { color: var(--text); opacity: 0.7; }
+
+    /* ── Bill preview strip ── */
+    .bill-preview { height: 6px; border-radius: 3px; margin-bottom: 20px; transition: all 0.3s; }
+    .bill-preview.bs10 { background: linear-gradient(90deg, var(--bs10-dark), var(--bs10)); box-shadow: 0 2px 12px var(--bs10-glow); }
+    .bill-preview.bs20 { background: linear-gradient(90deg, var(--bs20-dark), var(--bs20)); box-shadow: 0 2px 12px var(--bs20-glow); }
+    .bill-preview.bs50 { background: linear-gradient(90deg, var(--bs50-dark), var(--bs50)); box-shadow: 0 2px 12px var(--bs50-glow); }
+
+    /* ── Alert overlay ── */
+    .alert-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--alert-bg);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .alert-overlay.show { opacity: 1; pointer-events: all; }
+
+    .alert-card {
+      background: var(--alert-card);
+      border-radius: 24px;
+      padding: 36px 28px 28px;
+      text-align: center;
+      max-width: 320px;
+      width: 100%;
+      transform: scale(0.85);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s;
+      border: 1.5px solid var(--border);
+    }
+
+    .alert-overlay.show .alert-card { transform: scale(1); }
+
+    .alert-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 20px;
+    }
+
+    .alert-icon.valid   { background: rgba(0,200,83,0.12);  border: 2px solid var(--valid);   color: var(--valid); }
+    .alert-icon.invalid { background: rgba(255,23,68,0.12);  border: 2px solid var(--invalid); color: var(--invalid); }
+
+    .alert-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .alert-title.valid   { color: var(--valid); }
+    .alert-title.invalid { color: var(--invalid); }
+
+    .alert-sub { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 24px; }
+
+    .alert-serial-display {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--serial-display-bg);
+      margin-bottom: 20px;
+      color: var(--muted);
+      transition: background 0.3s;
+    }
+
+    .btn-close-alert {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      color: #fff;
+    }
+    .btn-close-alert.valid   { background: var(--valid); color: #0a2e1a; }
+    .btn-close-alert.invalid { background: var(--invalid); }
+    .btn-close-alert:active  { opacity: 0.85; }
+
+    /* ── Pulse animation ── */
+    @keyframes pulse-ring {
+      0%   { transform: scale(0.9); opacity: 1; }
+      80%  { transform: scale(1.3); opacity: 0; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
+
+    .pulse-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+    .pulse-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      animation: pulse-ring 1.4s ease-out infinite;
+    }
+
+    /* ── Footer ── */
+    footer {
+      width: 100%;
+      max-width: 480px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+
+    footer a {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: var(--bs50);
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s;
+    }
+    footer a:hover { opacity: 0.75; text-decoration: underline; }
+
+    footer .year {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.73rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="shield">🛡️</div>
+    <h1>Verifica tu Billete</h1>
+    <p>Billetes de la Serie B de cortes 10, 20 y 50 Bs</p>
+
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+      <span class="icon" id="themeIcon">☀️</span>
+      <span id="themeLabel">Claro</span>
+    </button>
+  </header>
+
+  <main>
+
+    <!-- Step 1 -->
+    <div class="step-label">① Seleccione el corte</div>
+    <div class="denom-grid">
+      <button class="denom-btn bs10" onclick="selectDenom(10)">
+        <span class="denom-icon">💵</span>
+        <span class="denom-label">Bs. 10</span>
+      </button>
+      <button class="denom-btn bs20" onclick="selectDenom(20)">
+        <span class="denom-icon">💵</span>
+        <span class="denom-label">Bs. 20</span>
+      </button>
+      <button class="denom-btn bs50" onclick="selectDenom(50)">
+        <span class="denom-icon">💵</span>
+        <span class="denom-label">Bs. 50</span>
+      </button>
+    </div>
+
+    <!-- Step 2 — hidden until denom selected -->
+    <div class="serial-section" id="serialSection" style="display:none">
+
+      <div class="bill-preview" id="billPreview"></div>
+
+      <div class="input-wrap">
+        <label for="serialInput">② Ingrese el número de serie</label>
+        <input
+          type="number"
+          id="serialInput"
+          class="serial-input"
+          placeholder="Ej: 87500000"
+          inputmode="numeric"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-check-main" id="btnCheck" onclick="verificar()">
+          🔍 Verificar
+        </button>
+        <button class="btn-reset" onclick="resetAll()" title="Reiniciar">↺</button>
+      </div>
+
+      <div class="info-chip">
+        Ingrese el número completo sin espacios ni letras.<br>
+        <strong>Solo billetes de la Serie B son verificables.</strong>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Alert overlay -->
+  <div class="alert-overlay" id="alertOverlay" onclick="closeAlert()">
+    <div class="alert-card" onclick="event.stopPropagation()">
+      <div class="alert-icon pulse-wrap" id="alertIcon"></div>
+      <div class="alert-title" id="alertTitle"></div>
+      <div class="alert-serial-display" id="alertSerial"></div>
+      <p class="alert-sub" id="alertSub"></p>
+      <button class="btn-close-alert" id="alertBtn" onclick="closeAlert()">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <a href="https://saulmamani.github.io/" target="_blank" rel="noopener noreferrer">Saul Mamani M.</a>
+    <span class="year" id="footerYear"></span>
+  </footer>
+
+  <script>
+    // ── Set current year in footer ──
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+    // ── Theme toggle ──
+    let isDark = true;
+
+    function toggleTheme() {
+      isDark = !isDark;
+      const html = document.documentElement;
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+
+      if (isDark) {
+        html.setAttribute('data-theme', 'dark');
+        icon.textContent  = '☀️';
+        label.textContent = 'Claro';
+      } else {
+        html.setAttribute('data-theme', 'light');
+        icon.textContent  = '🌙';
+        label.textContent = 'Oscuro';
+      }
+    }
+
+    // ── Serial ranges (Serie B sin valor legal) ──
+    const RANGES = {
+      50: [
+        [67250001, 67700000],[69050001, 69500000],[69500001, 69950000],
+        [69950001, 70400000],[70400001, 70850000],[70850001, 71300000],
+        [76310012, 85139995],[86400001, 86850000],[90900001, 91350000],
+        [91800001, 92250000]
+      ],
+      20: [
+        [87280145, 91646549],[96650001, 97100000],[99800001,100250000],
+        [100250001,100700000],[109250001,109700000],[110600001,111050000],
+        [111050001,111500000],[111950001,112400000],[112400001,112850000],
+        [112850001,113300000],[114200001,114650000],[114650001,115100000],
+        [115100001,115550000],[118700001,119150000],[119150001,119600000],
+        [120500001,120950000]
+      ],
+      10: [
+        [77100001, 77550000],[78000001, 78450000],[78900001, 96350000],
+        [96350001, 96800000],[96800001, 97250000],[98150001, 98600000],
+        [104900001,105350000],[105350001,105800000],[106700001,107150000],
+        [107600001,108050000],[108050001,108500000],[109400001,109850000]
+      ]
+    };
+
+    let selectedDenom = null;
+
+    function selectDenom(denom) {
+      selectedDenom = denom;
+      const map = {10:'bs10', 20:'bs20', 50:'bs50'};
+
+      document.querySelectorAll('.denom-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.denom-btn.${map[denom]}`).classList.add('active');
+
+      const input = document.getElementById('serialInput');
+      input.className = 'serial-input focus-' + map[denom];
+
+      document.getElementById('btnCheck').className = 'btn-check-main ' + map[denom];
+      document.getElementById('billPreview').className = 'bill-preview ' + map[denom];
+
+      const section = document.getElementById('serialSection');
+      section.style.display = 'block';
+      section.style.animation = 'none';
+      requestAnimationFrame(() => { section.style.animation = ''; });
+
+      input.value = '';
+      input.focus();
+    }
+
+    function isInvalidSerial(denom, serial) {
+      for (const [from, to] of RANGES[denom]) {
+        if (serial >= from && serial <= to) return true;
+      }
+      return false;
+    }
+
+    function verificar() {
+      if (!selectedDenom) return;
+      const raw = document.getElementById('serialInput').value.trim();
+      if (!raw) { shakeInput(); return; }
+      const serial = parseInt(raw, 10);
+      if (isNaN(serial) || serial <= 0) { shakeInput(); return; }
+      showAlert(isInvalidSerial(selectedDenom, serial), serial);
+    }
+
+    function shakeInput() {
+      const input = document.getElementById('serialInput');
+      input.style.borderColor = '#ff1744';
+      setTimeout(() => { input.style.borderColor = ''; }, 1000);
+    }
+
+    function showAlert(isObserved, serial) {
+      const overlay = document.getElementById('alertOverlay');
+      const icon    = document.getElementById('alertIcon');
+      const title   = document.getElementById('alertTitle');
+      const sub     = document.getElementById('alertSub');
+      const serialD = document.getElementById('alertSerial');
+      const btn     = document.getElementById('alertBtn');
+
+      serialD.textContent = `Serie: ${serial}  ·  Bs. ${selectedDenom}`;
+
+      if (isObserved) {
+        icon.textContent  = '✗';
+        icon.className    = 'alert-icon pulse-wrap invalid';
+        title.textContent = 'Billete Observado';
+        title.className   = 'alert-title invalid';
+        sub.textContent   = '⚠️ No lo reciba. Este billete pertenece a los rangos de la Serie B sin valor legal según el Banco Central de Bolivia.';
+        btn.className     = 'btn-close-alert invalid';
+      } else {
+        icon.textContent  = '✓';
+        icon.className    = 'alert-icon pulse-wrap valid';
+        title.textContent = 'Billete Válido';
+        title.className   = 'alert-title valid';
+        sub.textContent   = '✅ Este número de serie no se encuentra en los rangos de billetes observados. El billete puede aceptarse con normalidad.';
+        btn.className     = 'btn-close-alert valid';
+      }
+
+      overlay.classList.add('show');
+    }
+
+    function closeAlert() {
+      document.getElementById('alertOverlay').classList.remove('show');
+    }
+
+    function resetAll() {
+      selectedDenom = null;
+      document.querySelectorAll('.denom-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('serialInput').value = '';
+      document.getElementById('serialSection').style.display = 'none';
+      closeAlert();
+    }
+
+    document.getElementById('serialInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') verificar();
+    });
+
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      const sw = `
+        const CACHE='bsvalidador-v2';
+        self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['.']))));
+        self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+      `;
+      const blob = new Blob([sw], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+    }
+  </script>
+
+</body>
+</html>
