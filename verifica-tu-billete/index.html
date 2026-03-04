@@ -279,11 +279,33 @@
       animation: pulse-ring 1.4s ease-out infinite;
     }
 
+/* ── Footer ── */
     footer {
-      width: 100%; text-align: center;
-      padding: 16px;
-      font-size: .72rem; color: var(--muted);
+      width: 100%;
+      max-width: 480px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+
+    footer a {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: var(--bs50);
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s;
+    }
+    footer a:hover { opacity: 0.75; text-decoration: underline; }
+
+    footer .year {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.73rem;
+      color: var(--muted);
     }
   </style>
 </head>
@@ -368,6 +390,9 @@
   </div>
 
   <script>
+    // ── Set current year in footer ──
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+
     // ── Ranges (Serie B sin valor legal) ──
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
