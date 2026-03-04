@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TK1EFCZP8T"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TK1EFCZP8T');
+  </script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <meta name="theme-color" content="#1a1a2e" />
@@ -530,7 +540,7 @@
 
   <script>
     const year = new Date().getFullYear();
-    document.getElementById('footerYear').textContent = year + ' - v0.8';
+    document.getElementById('footerYear').textContent = year + ' - v0.7.4';
 
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
@@ -607,6 +617,10 @@
     });
     window.addEventListener('appinstalled', () => {
       document.getElementById('installBanner').classList.remove('visible');
+      gtag('event', 'app_installed', {
+        'event_category': 'engagement',
+        'event_label': 'pwa_installation'
+      });
       deferredPrompt = null;
     });
     async function installApp() {
@@ -638,6 +652,12 @@
       const serial = parseInt(raw, 10);
       if (isNaN(serial) || serial <= 0) { flashError(); return; }
       const matchedDenom = detectDenom(serial);
+      // Registrar evento en GA4
+      gtag('event', 'verificacion', {
+        'event_category': 'billete',
+        'event_label': 'verificacion_manual',
+        'metodo': 'manual'
+      });
       showAlert(matchedDenom !== null ? 'invalid' : 'valid', serial, matchedDenom);
     }
 
@@ -676,7 +696,7 @@
       document.getElementById('cameraOverlay').classList.remove('show');
       cameraActive = false;
       lastDetectedSerial = null;
-      inputEl.focus();
+      inputEl.blur(); // Ocultar teclado numérico
     }
 
     async function startOCR() {
@@ -716,6 +736,12 @@
             if (consecutiveMatches >= 2) {
               inputEl.value = serial;
               document.getElementById('ocrStatus').textContent = `✓ ${serial}${serialMatch.series ? ' ' + serialMatch.series : ''} - Verificando...`;
+              // Registrar evento en GA4
+              gtag('event', 'verificacion', {
+                'event_category': 'billete',
+                'event_label': 'verificacion_camara',
+                'metodo': 'camara_ocr'
+              });
               await new Promise(r => setTimeout(r, 800));
               closeCamera();
               verificar();
@@ -749,6 +775,7 @@
 
     // ── Alert ──
     function showAlert(type, serial, denom) {
+      inputEl.blur(); // Ocultar teclado numérico
       const serEl = document.getElementById('alertSerial');
       serEl.style.display = '';
       serEl.textContent = 'Serie: ' + serial;
@@ -773,7 +800,7 @@
         document.getElementById('alertDenom').style.border     = '1px solid rgba(0,230,118,.3)';
         document.getElementById('alertTitle').textContent = 'Billete Válido';
         document.getElementById('alertTitle').className   = 'alert-title valid';
-        document.getElementById('alertSub').innerHTML     = 'Este número <strong>no está en los rangos observados</strong>: el billete probablemente es válido.<br><br>Si tiene dudas, verifique que el número esté escrito correctamente.';
+        document.getElementById('alertSub').innerHTML     = 'Este número <strong>no está en los rangos observados</strong><br><br>Si tiene dudas, verifique que el número esté escrito correctamente.';
         document.getElementById('alertBtn').className     = 'btn-close-alert valid';
       }
       document.getElementById('alertOverlay').classList.add('show');
@@ -785,6 +812,7 @@
     }
 
     function closeAlert() {
+      inputEl.blur(); // Asegurar que el teclado se oculta
       document.getElementById('alertOverlay').classList.remove('show');
       _resetBadgeStyles();
     }
