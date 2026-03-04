@@ -585,18 +585,12 @@
             
             if (consecutiveMatches >= 2) {
               console.log(`Detected: ${serial}${series ? ' ' + series : ''}`);
-              
-              if (series && series !== 'B') {
-                closeCamera();
-                inputEl.value = serial;
-                showAlert('valid', serial, null);
-              } else {
-                inputEl.value = serial;
-                document.getElementById('ocrStatus').textContent = `✓ ${serial}${series ? ' ' + series : ''} - Verificando...`;
-                await new Promise(r => setTimeout(r, 800));
-                closeCamera();
-                verificar();
-              }
+              // anotar siempre y verificar el número; la letra es meramente informativa
+              inputEl.value = serial;
+              document.getElementById('ocrStatus').textContent = `✓ ${serial}${series ? ' ' + series : ''} - Verificando...`;
+              await new Promise(r => setTimeout(r, 800));
+              closeCamera();
+              verificar();
             } else {
               document.getElementById('ocrStatus').textContent = `Confirmando: ${serialMatch.serial}${serialMatch.series ? ' ' + serialMatch.series : ''}...`;
             }
