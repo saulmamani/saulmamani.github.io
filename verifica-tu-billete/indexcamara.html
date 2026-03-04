@@ -321,6 +321,30 @@
       background: rgba(0,0,0,.7); border-radius: 8px; padding: 8px 14px;
       color: #fff; font-size: 0.8rem; text-align: center; flex: 1;
     }
+    
+    /* ── Denom selector ── */
+    .step-label {
+      font-family: 'Syne', sans-serif; font-size: .7rem; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 12px;
+    }
+    .denom-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; margin-bottom: 20px;
+    }
+    .denom-btn {
+      border: 2px solid var(--border); background: var(--surface);
+      border-radius: 14px; padding: 16px 12px; text-align: center;
+      cursor: pointer; transition: all .2s; font-family: 'Syne', sans-serif;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: var(--muted);
+    }
+    .denom-btn:hover { border-color: var(--bs50); }
+    .denom-btn.active { border-color: var(--bs50); background: rgba(206,147,216,.15); color: var(--bs50); }
+    .denom-icon { font-size: 1.8rem; }
+    .denom-label { font-weight: 800; font-size: .85rem; }
+    .denom-sub { font-size: .65rem; opacity: .7; }
+    .serial-card.hidden { display: none; }
   </style>
 </head>
 <body>
@@ -354,13 +378,31 @@
       <div class="legend-chip"><span class="dot dot-50"></span>Bs. 50</div>
     </div>
 
-    <!-- Serial input card -->
-    <div class="serial-card">
-      <label class="field-label" for="serialInput">Número de serie del billete</label>
+    <!-- Denom selector -->
+    <div class="denom-selector-card" style="background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px; padding: 24px 20px; margin-bottom: 16px;">
+      <div class="step-label">① Seleccione el corte</div>
+      <div class="denom-grid">
+        <button class="denom-btn bs10" onclick="selectDenom(10)">
+          <span class="denom-icon">💵</span>
+          <span class="denom-label">Bs. 10</span>
+          <span class="denom-sub">Azul</span>
+        </button>
+        <button class="denom-btn bs20" onclick="selectDenom(20)">
+          <span class="denom-icon">💵</span>
+          <span class="denom-label">Bs. 20</span>
+          <span class="denom-sub">Rojo</span>
+        </button>
+        <button class="denom-btn bs50" onclick="selectDenom(50)">
+          <span class="denom-icon">💵</span>
+          <span class="denom-label">Bs. 50</span>
+          <span class="denom-sub">Morado</span>
+        </button>
+      </div>
+    </div>
 
-      <!-- Input with camera icon inside -->
-      <div class="input-wrapper">
-        <input
+    <!-- Serial input card -->
+    <div class="serial-card hidden" id="serialCard">
+      <label class="field-label" for="serialInput">② Número de serie</label>
           type="tel"
           id="serialInput"
           class="serial-input"
@@ -444,13 +486,42 @@
     let cameraActive = false;
     let ocrWorking = false;
     let lastDetectedSerial = null;
+    let selectedDenom = null;
+
+    function selectDenom(denom) {
+      selectedDenom = denom;
+      // marcar botón como active
+      document.querySelectorAll('.denom-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.closest('.denom-btn').classList.add('active');
+      // mostrar la tarjeta de serie
+      document.getElementById('serialCard').classList.remove('hidden');
+      // limpiar estado anterior
+      inputEl.value = '';
+      inputEl.focus();
+    }
 
     function detectDenom(serial) {
+      // Si hay denominación seleccionada, verificar solo contra esa
+      if (selectedDenom) {
+        for (const [from, to] of RANGES[selectedDenom]) {
+          if (serial >= from && serial <= to) {
+            console.log('detectDenom hit', serial, selectedDenom, from, to);
+            return selectedDenom;
+          }
+        }
+        console.log('detectDenom none', serial, 'selectedDenom=', selectedDenom);
+        return null;
+      }
+      // Si no hay selección, verificar todos (fallback)
       for (const denom of [50, 20, 10]) {
         for (const [from, to] of RANGES[denom]) {
-          if (serial >= from && serial <= to) return denom;
+          if (serial >= from && serial <= to) {
+            console.log('detectDenom hit', serial, denom, from, to);
+            return denom;
+          }
         }
       }
+      console.log('detectDenom none', serial);
       return null;
     }
 
@@ -488,6 +559,7 @@
     // ── Verify ──
     function verificar() {
       const raw = inputEl.value.replace(/\D/g, '').trim();
+      console.log('verificar called raw=', raw);
       if (!raw) { flashError(); return; }
       const serial = parseInt(raw, 10);
       if (isNaN(serial) || serial <= 0) { flashError(); return; }
