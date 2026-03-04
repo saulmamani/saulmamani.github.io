@@ -462,7 +462,7 @@
     </div>
 
     <!-- Step 2: serial input (hidden until denom selected) -->
-    <div class="section-card" id="serialCard">
+    <div class="section-card" id="serialCard" style="display:none">
       <div class="serial-section" id="serialSection">
         <div class="denom-bar" id="denomBar"></div>
         <label class="field-label" for="serialInput">② Ingrese o escanee el número de serie</label>
@@ -530,7 +530,7 @@
 
   <script>
     const year = new Date().getFullYear();
-    document.getElementById('footerYear').textContent = year + ' - v0.71';
+    document.getElementById('footerYear').textContent = year + ' - v0.8';
 
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
@@ -575,7 +575,8 @@
       const bar = document.getElementById('denomBar');
       bar.className = 'denom-bar ' + cls;
 
-      // Show serial section with animation
+      // Show serial card + section with animation
+      document.getElementById('serialCard').style.display = '';
       const section = document.getElementById('serialSection');
       section.classList.remove('visible');
       requestAnimationFrame(() => section.classList.add('visible'));
@@ -794,6 +795,7 @@
       document.getElementById('btnVerify').classList.remove('bs10', 'bs20', 'bs50');
       document.querySelectorAll('.denom-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('serialSection').classList.remove('visible');
+      document.getElementById('serialCard').style.display = 'none';
       selectedDenom = null;
       closeAlert();
     }
