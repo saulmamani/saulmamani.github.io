@@ -184,6 +184,15 @@
       color: #0f0f1a; background: linear-gradient(135deg, #4fc3f7, #ce93d8);
       -webkit-tap-highlight-color: transparent;
     }
+    .btn-verify.bs10 {
+      background: linear-gradient(135deg, var(--bs10), var(--bs10));
+    }
+    .btn-verify.bs20 {
+      background: linear-gradient(135deg, var(--bs20), var(--bs20));
+    }
+    .btn-verify.bs50 {
+      background: linear-gradient(135deg, var(--bs50), var(--bs50));
+    }
     .btn-verify:active { transform: scale(.97); opacity: .88; }
     .btn-reset {
       border: 1.5px solid var(--border); background: transparent;
@@ -333,11 +342,14 @@
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       color: var(--muted);
     }
-    .denom-btn:hover { border-color: var(--bs50); }
+    .denom-btn:hover { border-color: currentColor; }
+    .denom-btn.bs10 { border-color: var(--border); }
     .denom-btn.bs10:hover { border-color: var(--bs10); }
     .denom-btn.bs10.active { border: 2px solid var(--bs10); background: rgba(79,195,247,.15); color: var(--bs10); }
+    .denom-btn.bs20 { border-color: var(--border); }
     .denom-btn.bs20:hover { border-color: var(--bs20); }
     .denom-btn.bs20.active { border: 2px solid var(--bs20); background: rgba(239,154,154,.15); color: var(--bs20); }
+    .denom-btn.bs50 { border-color: var(--border); }
     .denom-btn.bs50:hover { border-color: var(--bs50); }
     .denom-btn.bs50.active { border: 2px solid var(--bs50); background: rgba(206,147,216,.15); color: var(--bs50); }
     .denom-icon { font-size: 1.8rem; }
@@ -391,7 +403,7 @@
 
     <!-- Serial input card -->
     <div class="serial-card hidden" id="serialCard">
-      <label class="field-label" for="serialInput">② Número de serie</label>
+      <label class="field-label" for="serialInput">② Ingrese el número de serie o use la cámara para escanear el billete</label>
 
       <!-- Input with camera icon inside -->
       <div class="input-wrapper">
@@ -421,10 +433,7 @@
     </div>
 
     <div class="info-chip">
-       Ingrese el número completo sin espacios ni letras, o tambien puede, 
-        <strong>utilizar la cámara para escanear</strong> el número de serie automáticamente.
-        <br> <br>
-        <i>Solo números de la Serie B son verificables</i>
+        Solo billetes de la <strong>serie B</strong> son verificables
     </div>
 
   </main>
@@ -491,6 +500,10 @@
       // cambiar color del input según denominación
       inputEl.classList.remove('bs10', 'bs20', 'bs50');
       inputEl.classList.add('bs' + denom);
+      // cambiar color del botón Verificar según denominación
+      const btnVerify = document.querySelector('.btn-verify');
+      btnVerify.classList.remove('bs10', 'bs20', 'bs50');
+      btnVerify.classList.add('bs' + denom);
       // mostrar la tarjeta de serie
       document.getElementById('serialCard').classList.remove('hidden');
       // limpiar estado anterior
@@ -772,6 +785,7 @@
     function resetAll() {
       inputEl.value = '';
       inputEl.classList.remove('bs10', 'bs20', 'bs50');
+      document.querySelector('.btn-verify').classList.remove('bs10', 'bs20', 'bs50');
       document.querySelectorAll('.denom-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById('serialCard').classList.add('hidden');
       selectedDenom = null;
