@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -49,8 +48,7 @@
     html { -webkit-text-size-adjust: 100%; }
     body {
       font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       min-height: 100dvh;
       display: flex; flex-direction: column; align-items: center;
       padding-bottom: 40px;
@@ -62,17 +60,12 @@
 
     /* ── Header ── */
     header {
-      width: 100%;
-      border-bottom: 1px solid var(--border);
-      background: var(--header-bg);
-      backdrop-filter: blur(12px);
+      width: 100%; border-bottom: 1px solid var(--border);
+      background: var(--header-bg); backdrop-filter: blur(12px);
       position: sticky; top: 0; z-index: 10;
       transition: background .3s, border-color .3s;
     }
-    .header-topbar {
-      display: flex; justify-content: flex-end;
-      padding: 10px 16px 0;
-    }
+    .header-topbar { display: flex; justify-content: flex-end; padding: 10px 16px 0; }
     .theme-toggle {
       background: var(--surface); border: 1.5px solid var(--border);
       border-radius: 10px; width: 38px; height: 38px;
@@ -87,10 +80,7 @@
       background: linear-gradient(135deg, #4fc3f7, #ce93d8);
       margin-bottom: 6px; font-size: 20px;
     }
-    header h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.2rem; font-weight: 800; letter-spacing: -.5px; color: var(--text);
-    }
+    header h1 { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; letter-spacing: -.5px; color: var(--text); }
     header p { font-size: .75rem; color: var(--muted); margin-top: 2px; }
 
     /* ── Install banner ── */
@@ -111,66 +101,82 @@
       color: #0f0f1a; cursor: pointer; white-space: nowrap; transition: opacity .2s;
     }
     .btn-install:active { opacity: .8; }
-    .btn-install-close {
-      background: transparent; border: none;
-      color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 4px;
-    }
+    .btn-install-close { background: transparent; border: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 4px; }
 
     /* ── Main ── */
     main { width: 100%; max-width: 480px; padding: 28px 20px; flex: 1; }
 
-    /* ── Serial input card ── */
+    /* ── Serial card ── */
     .serial-card {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 20px;
-      padding: 24px 20px 20px;
-      margin-bottom: 16px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 24px 20px 20px; margin-bottom: 16px;
       transition: background .3s, border-color .3s;
     }
-
     .field-label {
       font-family: 'Syne', sans-serif; font-size: .7rem; font-weight: 700;
       letter-spacing: 2px; text-transform: uppercase;
       color: var(--muted); display: block; margin-bottom: 12px;
     }
 
-    /* ── Input — font-size ≥ 16px prevents iOS zoom ── */
-    .serial-input {
-      display: block;
-      width: 100%;
-      font-size: 22px;
-      line-height: 1.4;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      letter-spacing: 4px;
-      text-align: center;
-      color: var(--input-text);
-      background: var(--input-bg);
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 15px 16px;
+    /* ── Input wrapper: input with camera icon inside ── */
+    .input-wrapper {
+      position: relative;
       margin-bottom: 16px;
-      appearance: none; -webkit-appearance: none;
-      -moz-appearance: textfield;
+    }
+
+    .serial-input {
+      display: block; width: 100%;
+      font-size: 22px; line-height: 1.4;
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      letter-spacing: 4px; text-align: center;
+      color: var(--input-text); background: var(--input-bg);
+      border: 1.5px solid var(--border); border-radius: 14px;
+      /* right padding makes room for the camera icon */
+      padding: 15px 52px 15px 16px;
+      appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
       outline: none;
       transition: border-color .2s, box-shadow .2s, background .3s, color .3s;
     }
     .serial-input::-webkit-outer-spin-button,
     .serial-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .serial-input::placeholder {
-      color: var(--muted); letter-spacing: 2px; font-size: 14px; font-weight: 400;
-    }
+    .serial-input::placeholder { color: var(--muted); letter-spacing: 2px; font-size: 14px; font-weight: 400; }
     .serial-input:focus { outline: none; border-color: var(--bs50); box-shadow: 0 0 16px var(--bs50-glow); }
     .serial-input.error { border-color: var(--invalid) !important; box-shadow: 0 0 12px rgba(255,23,68,.3) !important; }
 
+    /* ── Camera button — positioned inside the input, right side ── */
+    .btn-camera {
+      position: absolute;
+      right: 6px; top: 50%; transform: translateY(-50%);
+      width: 40px; height: 40px;
+      background: transparent; border: none; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-camera:hover { background: rgba(206,147,216,.15); }
+    .btn-camera:active { transform: translateY(-50%) scale(.85); }
+    .btn-camera svg {
+      width: 20px; height: 20px;
+      stroke: var(--muted); fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+      transition: stroke .2s;
+    }
+    .btn-camera:hover svg { stroke: var(--bs50); }
+    /* "coming soon" dot */
+    .btn-camera .soon-dot {
+      position: absolute; top: 5px; right: 5px;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--bs50); box-shadow: 0 0 5px var(--bs50-glow);
+    }
+
+    /* ── Action buttons ── */
     .btn-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; }
     .btn-verify {
       border: none; border-radius: 14px; padding: 16px 24px;
       font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
       letter-spacing: .5px; cursor: pointer; transition: all .2s;
-      color: #0f0f1a;
-      background: linear-gradient(135deg, #4fc3f7, #ce93d8);
+      color: #0f0f1a; background: linear-gradient(135deg, #4fc3f7, #ce93d8);
       -webkit-tap-highlight-color: transparent;
     }
     .btn-verify:active { transform: scale(.97); opacity: .88; }
@@ -192,22 +198,16 @@
     }
     .info-chip strong { color: var(--text); opacity: .75; }
 
-    /* ── Legend chips ── */
-    .legend {
-      display: flex; gap: 8px; justify-content: center;
-      flex-wrap: wrap; margin-bottom: 24px;
-    }
+    /* ── Legend ── */
+    .legend { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
     .legend-chip {
       display: flex; align-items: center; gap: 6px;
       padding: 6px 12px; border-radius: 50px;
-      border: 1.5px solid var(--border);
-      background: var(--surface);
+      border: 1.5px solid var(--border); background: var(--surface);
       font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700;
       color: var(--muted); transition: background .3s;
     }
-    .legend-chip .dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-    }
+    .legend-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .dot-10 { background: var(--bs10); box-shadow: 0 0 6px var(--bs10-glow); }
     .dot-20 { background: var(--bs20); box-shadow: 0 0 6px var(--bs20-glow); }
     .dot-50 { background: var(--bs50); box-shadow: 0 0 6px var(--bs50-glow); }
@@ -216,15 +216,13 @@
     .alert-overlay {
       position: fixed; inset: 0; z-index: 999;
       display: flex; align-items: center; justify-content: center;
-      padding: 24px; background: rgba(10,10,20,.85);
-      backdrop-filter: blur(8px);
+      padding: 24px; background: rgba(10,10,20,.85); backdrop-filter: blur(8px);
       opacity: 0; pointer-events: none; transition: opacity .25s;
     }
     .alert-overlay.show { opacity: 1; pointer-events: all; }
     .alert-card {
       background: var(--alert-card-bg); border-radius: 24px;
-      padding: 36px 28px 28px; text-align: center;
-      max-width: 320px; width: 100%;
+      padding: 36px 28px 28px; text-align: center; max-width: 320px; width: 100%;
       transform: scale(.85);
       transition: transform .3s cubic-bezier(.34,1.56,.64,1), background .3s;
       border: 1.5px solid var(--border);
@@ -235,23 +233,25 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 2.5rem; margin: 0 auto 16px;
     }
-    .alert-icon.valid   { background: rgba(0,230,118,.15); border: 2px solid var(--valid); color: var(--valid); }
+    .alert-icon.valid   { background: rgba(0,230,118,.15); border: 2px solid var(--valid);   color: var(--valid); }
     .alert-icon.invalid { background: rgba(255,23,68,.15);  border: 2px solid var(--invalid); color: var(--invalid); }
+    .alert-icon.soon    { background: rgba(206,147,216,.12); border: 2px solid var(--bs50);  color: var(--bs50); }
 
     .alert-denom-badge {
-      display: inline-block;
-      font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 800;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      padding: 4px 12px; border-radius: 50px;
-      margin-bottom: 12px;
+      display: inline-block; font-family: 'Syne', sans-serif; font-size: .72rem;
+      font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 50px; margin-bottom: 12px;
     }
-    .badge-bs10 { background: rgba(79,195,247,.15);  color: var(--bs10);  border: 1px solid var(--bs10-glow); }
-    .badge-bs20 { background: rgba(239,154,154,.15); color: var(--bs20);  border: 1px solid var(--bs20-glow); }
-    .badge-bs50 { background: rgba(206,147,216,.15); color: var(--bs50);  border: 1px solid var(--bs50-glow); }
+    .badge-bs10 { background: rgba(79,195,247,.15);  color: var(--bs10); border: 1px solid var(--bs10-glow); }
+    .badge-bs20 { background: rgba(239,154,154,.15); color: var(--bs20); border: 1px solid var(--bs20-glow); }
+    .badge-bs50 { background: rgba(206,147,216,.15); color: var(--bs50); border: 1px solid var(--bs50-glow); }
+    .badge-soon { background: rgba(206,147,216,.10); color: var(--bs50); border: 1px solid var(--bs50-glow); }
 
     .alert-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
     .alert-title.valid   { color: var(--valid); }
     .alert-title.invalid { color: var(--invalid); }
+    .alert-title.soon    { color: var(--bs50); }
+
     .alert-sub { font-size: .84rem; color: var(--muted); line-height: 1.55; margin-bottom: 24px; }
     .alert-serial-display {
       font-family: 'Syne', sans-serif; font-size: .88rem; font-weight: 700;
@@ -265,7 +265,8 @@
     }
     .btn-close-alert.valid   { background: var(--valid);   color: #0a2e1a; }
     .btn-close-alert.invalid { background: var(--invalid); color: #fff; }
-    .btn-close-alert:active  { opacity: .85; }
+    .btn-close-alert.soon    { background: var(--bs50);    color: #1a0a2e; }
+    .btn-close-alert:active { opacity: .85; }
 
     @keyframes pulse-ring {
       0%   { transform: scale(.9); opacity: 1; }
@@ -275,22 +276,18 @@
     .pulse-wrap { position: relative; display: inline-block; }
     .pulse-wrap::after {
       content: ''; position: absolute; inset: 0; border-radius: 50%;
-      border: 2px solid currentColor;
-      animation: pulse-ring 1.4s ease-out infinite;
+      border: 2px solid currentColor; animation: pulse-ring 1.4s ease-out infinite;
     }
 
     /* ── Footer ── */
     footer {
-      width: 100%; max-width: 480px;
-      padding: 14px 20px;
+      width: 100%; max-width: 480px; padding: 14px 20px;
       display: flex; align-items: center; justify-content: space-between;
-      border-top: 1px solid var(--border);
-      margin-top: auto;
+      border-top: 1px solid var(--border); margin-top: auto;
     }
     footer a {
       font-family: 'Syne', sans-serif; font-size: .73rem; font-weight: 700;
-      color: var(--bs50); text-decoration: none;
-      letter-spacing: .3px; transition: opacity .2s;
+      color: var(--bs50); text-decoration: none; letter-spacing: .3px; transition: opacity .2s;
     }
     footer a:hover { opacity: .75; text-decoration: underline; }
     footer .year { font-family: 'DM Sans', sans-serif; font-size: .73rem; color: var(--muted); }
@@ -320,27 +317,39 @@
 
   <main>
 
-    <!-- Legend: denomination reference -->
+    <!-- Legend -->
     <div class="legend">
       <div class="legend-chip"><span class="dot dot-10"></span>Bs. 10</div>
       <div class="legend-chip"><span class="dot dot-20"></span>Bs. 20</div>
       <div class="legend-chip"><span class="dot dot-50"></span>Bs. 50</div>
     </div>
 
-    <!-- Serial input -->
+    <!-- Serial input card -->
     <div class="serial-card">
       <label class="field-label" for="serialInput">Número de serie del billete</label>
-      <input
-        type="tel"
-        id="serialInput"
-        class="serial-input"
-        placeholder="Ej: 87500000"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        autocomplete="off"
-        autocorrect="off"
-        spellcheck="false"
-      />
+
+      <!-- Input with camera icon inside -->
+      <div class="input-wrapper">
+        <input
+          type="tel"
+          id="serialInput"
+          class="serial-input"
+          placeholder="Ej: 87500000"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <button class="btn-camera" onclick="showComingSoon()" title="Escanear con cámara" aria-label="Escanear número de serie con la cámara">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <span class="soon-dot"></span>
+        </button>
+      </div>
+
       <div class="btn-row">
         <button class="btn-verify" onclick="verificar()">🔍 Verificar</button>
         <button class="btn-reset" onclick="resetAll()" title="Limpiar">↺</button>
@@ -349,7 +358,7 @@
 
     <div class="info-chip">
       Ingrese solo los <strong>dígitos del número de serie</strong>.<br>
-      El corte del billete se detecta automáticamente.<br> <br>
+      El corte del billete se detecta automáticamente.<br><br>
       Si el número no coincide con ningún rango, el billete es <strong>válido</strong> o puede que haya ingresado el número incorrectamente.
     </div>
 
@@ -374,11 +383,8 @@
   </div>
 
   <script>
-    // ── Footer year ──
     document.getElementById('footerYear').textContent = new Date().getFullYear();
 
-    // ── Ranges: Serie B sin valor legal ──
-    // Ranges do NOT overlap between denominations — denom is auto-detected.
     const RANGES = {
       50: [[67250001,67700000],[69050001,69500000],[69500001,69950000],[69950001,70400000],
            [70400001,70850000],[70850001,71300000],[76310012,85139995],[86400001,86850000],
@@ -394,10 +400,8 @@
 
     const DENOM_LABEL = { 50: 'Bs. 50', 20: 'Bs. 20', 10: 'Bs. 10' };
     const DENOM_CLASS = { 50: 'badge-bs50', 20: 'badge-bs20', 10: 'badge-bs10' };
-
     let deferredPrompt = null;
 
-    // ── Detect which denomination a serial belongs to (returns denom or null) ──
     function detectDenom(serial) {
       for (const denom of [50, 20, 10]) {
         for (const [from, to] of RANGES[denom]) {
@@ -409,8 +413,7 @@
 
     // ── PWA Install ──
     window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
+      e.preventDefault(); deferredPrompt = e;
       document.getElementById('installBanner').classList.add('visible');
     });
     window.addEventListener('appinstalled', () => {
@@ -434,7 +437,7 @@
       document.getElementById('themeToggle').textContent = isLight ? '🌙' : '☀️';
     }
 
-    // ── Only allow numeric input ──
+    // ── Input: only numbers ──
     const inputEl = document.getElementById('serialInput');
     inputEl.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
     inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verificar(); } });
@@ -443,19 +446,10 @@
     function verificar() {
       const raw = inputEl.value.replace(/\D/g, '').trim();
       if (!raw) { flashError(); return; }
-
       const serial = parseInt(raw, 10);
       if (isNaN(serial) || serial <= 0) { flashError(); return; }
-
       const matchedDenom = detectDenom(serial);
-
-      if (matchedDenom !== null) {
-        // Serial found in an invalid range
-        showAlert('invalid', serial, matchedDenom);
-      } else {
-        // Not in any observed range
-        showAlert('valid', serial, null);
-      }
+      showAlert(matchedDenom !== null ? 'invalid' : 'valid', serial, matchedDenom);
     }
 
     function flashError() {
@@ -463,50 +457,68 @@
       setTimeout(() => inputEl.classList.remove('error'), 1200);
     }
 
+    // ── Coming soon (camera button) ──
+    function showComingSoon() {
+      const serEl = document.getElementById('alertSerial');
+      serEl.textContent = '';
+      serEl.style.display = 'none';
+
+      _resetBadgeStyles();
+      document.getElementById('alertIcon').textContent  = '📷';
+      document.getElementById('alertIcon').className    = 'alert-icon soon';
+      document.getElementById('alertDenom').textContent = '✦ Próximamente';
+      document.getElementById('alertDenom').className   = 'alert-denom-badge badge-soon';
+      document.getElementById('alertTitle').textContent = 'Función en Desarrollo';
+      document.getElementById('alertTitle').className   = 'alert-title soon';
+      document.getElementById('alertSub').innerHTML     =
+        'El <strong>escaneo automático</strong> de números de serie mediante la cámara estará disponible en una próxima actualización.<br><br>' +
+        'Por el momento, ingrese el número manualmente.';
+      document.getElementById('alertBtn').className     = 'btn-close-alert soon';
+      document.getElementById('alertOverlay').classList.add('show');
+    }
+
     // ── Alert ──
     function showAlert(type, serial, denom) {
-      const icon  = document.getElementById('alertIcon');
-      const badge = document.getElementById('alertDenom');
-      const title = document.getElementById('alertTitle');
-      const sub   = document.getElementById('alertSub');
-      const btn   = document.getElementById('alertBtn');
       const serEl = document.getElementById('alertSerial');
-
-      serEl.textContent = 'Serie: ' + serial;
+      serEl.style.display = '';
+      serEl.textContent   = 'Serie: ' + serial;
+      _resetBadgeStyles();
 
       if (type === 'invalid') {
-        icon.textContent = '✗';
-        icon.className   = 'alert-icon pulse-wrap invalid';
-        badge.textContent = '⚠ ' + DENOM_LABEL[denom] + ' — Billete observado';
-        badge.className  = 'alert-denom-badge ' + DENOM_CLASS[denom];
-        title.textContent = 'No lo reciba';
-        title.className  = 'alert-title invalid';
-        sub.textContent  = 'Este número de serie pertenece a los rangos de la Serie B declarados sin valor legal por el Banco Central de Bolivia.';
-        btn.className    = 'btn-close-alert invalid';
+        document.getElementById('alertIcon').textContent  = '✗';
+        document.getElementById('alertIcon').className    = 'alert-icon pulse-wrap invalid';
+        document.getElementById('alertDenom').textContent = '⚠ ' + DENOM_LABEL[denom] + ' — Billete observado';
+        document.getElementById('alertDenom').className   = 'alert-denom-badge ' + DENOM_CLASS[denom];
+        document.getElementById('alertTitle').textContent = 'No lo reciba';
+        document.getElementById('alertTitle').className   = 'alert-title invalid';
+        document.getElementById('alertSub').textContent   = 'Este número de serie pertenece a los rangos de la Serie B declarados sin valor legal por el Banco Central de Bolivia.';
+        document.getElementById('alertBtn').className     = 'btn-close-alert invalid';
       } else {
-        icon.textContent = '✓';
-        icon.className   = 'alert-icon pulse-wrap valid';
-        badge.textContent = '✔ Fuera de rangos observados';
-        badge.className  = 'alert-denom-badge badge-bs10';
-        badge.style.background = 'rgba(0,230,118,.12)';
-        badge.style.color      = 'var(--valid)';
-        badge.style.border     = '1px solid rgba(0,230,118,.3)';
-        title.textContent = 'Billete Válido';
-        title.className  = 'alert-title valid';
-        sub.innerHTML    = 'Este número <strong>no está en los rangos observados</strong>: el billete probablemente es válido.<br><br>Si tiene dudas, verifique que el número esté escrito correctamente.';
-        btn.className    = 'btn-close-alert valid';
+        document.getElementById('alertIcon').textContent  = '✓';
+        document.getElementById('alertIcon').className    = 'alert-icon pulse-wrap valid';
+        document.getElementById('alertDenom').textContent = '✔ Fuera de rangos observados';
+        document.getElementById('alertDenom').className   = 'alert-denom-badge';
+        document.getElementById('alertDenom').style.background = 'rgba(0,230,118,.12)';
+        document.getElementById('alertDenom').style.color      = 'var(--valid)';
+        document.getElementById('alertDenom').style.border     = '1px solid rgba(0,230,118,.3)';
+        document.getElementById('alertTitle').textContent = 'Billete Válido';
+        document.getElementById('alertTitle').className   = 'alert-title valid';
+        document.getElementById('alertSub').innerHTML     = 'Este número <strong>no está en los rangos observados</strong>: el billete probablemente es válido.<br><br>Si tiene dudas, verifique que el número esté escrito correctamente.';
+        document.getElementById('alertBtn').className     = 'btn-close-alert valid';
       }
-
       document.getElementById('alertOverlay').classList.add('show');
+    }
+
+    function _resetBadgeStyles() {
+      const b = document.getElementById('alertDenom');
+      b.style.background = '';
+      b.style.color      = '';
+      b.style.border     = '';
     }
 
     function closeAlert() {
       document.getElementById('alertOverlay').classList.remove('show');
-      // Reset badge inline styles for next use
-      const badge = document.getElementById('alertDenom');
-      badge.style.background = '';
-      badge.style.color      = '';
-      badge.style.border     = '';
+      _resetBadgeStyles();
     }
 
     function resetAll() {

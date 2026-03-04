@@ -1,6 +1,6 @@
 {
-  "name": "Validador de Billetes Bolivia",
-  "short_name": "Valida Bs.",
+  "name": "Verificador de Billetes Bolivia",
+  "short_name": "Verifica Bs",
   "description": "Verifica si un billete boliviano de la Serie B tiene valor legal",
   "start_url": "./index.html",
   "display": "standalone",
