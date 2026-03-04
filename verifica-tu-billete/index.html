@@ -1,88 +1,26 @@
 <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const resultDiv = document.getElementById('result');
+document.addEventListener("DOMContentLoaded", () => {
 
-    // Iniciar cámara trasera
-    navigator.mediaDevices.getUserMedia({
-        video: {
-            facingMode: { exact: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        }
-    })
-        .then(stream => video.srcObject = stream)
-        .catch(err => alert("Error cámara: " + err));
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const resultDiv = document.getElementById('result');
 
-    // Función para mejorar contraste
-    function preprocessImage(ctx, width, height) {
-        const imageData = ctx.getImageData(0, 0, width, height);
-        const data = imageData.data;
+  if (!video) {
+    alert("No se encontró el elemento video");
+    return;
+  }
 
-        for (let i = 0; i < data.length; i += 4) {
-            const gray = 0.3 * data[i] + 0.59 * data[i + 1] + 0.11 * data[i + 2];
-            const threshold = gray > 150 ? 255 : 0;
-
-            data[i] = threshold;
-            data[i + 1] = threshold;
-            data[i + 2] = threshold;
-        }
-
-        ctx.putImageData(imageData, 0, 0);
+  navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: "environment"
     }
+  })
+  .then(stream => {
+    video.srcObject = stream;
+  })
+  .catch(err => {
+    alert("Error cámara: " + err);
+  });
 
-    async function capture() {
-
-        const context = canvas.getContext('2d');
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        context.drawImage(video, 0, 0);
-
-        // 🔥 Recortar zona central (donde suele estar la serie)
-        const cropWidth = canvas.width * 0.6;
-        const cropHeight = canvas.height * 0.3;
-        const cropX = (canvas.width - cropWidth) / 2;
-        const cropY = (canvas.height - cropHeight) / 2;
-
-        const cropped = context.getImageData(cropX, cropY, cropWidth, cropHeight);
-
-        canvas.width = cropWidth;
-        canvas.height = cropHeight;
-        context.putImageData(cropped, 0, 0);
-
-        // Mejorar contraste
-        preprocessImage(context, cropWidth, cropHeight);
-
-        resultDiv.classList.remove("d-none");
-        resultDiv.className = "alert alert-info";
-        resultDiv.innerHTML = "⏳ Analizando billete...";
-
-        const { data: { text } } = await Tesseract.recognize(
-            canvas,
-            'eng',
-            {
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-                logger: m => console.log(m)
-            }
-        );
-
-        console.log("Texto detectado:", text);
-
-        // Buscar serie B válida
-        const match = text.match(/B\d{7,8}/);
-
-        if (match) {
-            resultDiv.className = "alert alert-success";
-            resultDiv.innerHTML = `
-      ✅ Billete válido<br>
-      Serie detectada: <strong>${match[0]}</strong><br>
-      Denominación permitida: 10, 20 o 50 Bs
-    `;
-        } else {
-            resultDiv.className = "alert alert-danger";
-            resultDiv.innerHTML = "❌ Billete no válido";
-        }
-    }
+});
 </script>
